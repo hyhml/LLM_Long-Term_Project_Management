@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LLM long-term project handoff",
+  "type": "object",
+  "required": [
+    "task_id",
+    "completion_criteria",
+    "summary",
+    "findings",
+    "attempts",
+    "failed_directions",
+    "evidence",
+    "artifacts",
+    "candidate_tools",
+    "proposed_changes",
+    "open_questions",
+    "next_task_candidates"
+  ],
+  "properties": {
+    "task_id": {"type": "string", "minLength": 1},
+    "completion_criteria": {"type": "array", "items": {"type": "string"}},
+    "summary": {"type": "string"},
+    "findings": {"type": "array", "items": {"type": "object"}},
+    "attempts": {"type": "array", "items": {"type": "object"}},
+    "failed_directions": {"type": "array", "items": {"type": "object"}},
+    "evidence": {"type": "array", "items": {"type": "object"}},
+    "artifacts": {"type": "array", "items": {"type": "object"}},
+    "candidate_tools": {"type": "array", "items": {"type": "object"}},
+    "proposed_changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["change_id", "operation", "target", "reason", "value"]
+      }
+    },
+    "open_questions": {"type": "array", "items": {"type": "object"}},
+    "next_task_candidates": {"type": "array", "items": {"type": "object"}},
+    "execution_environment_summary": {"type": "object"}
+  },
+  "additionalProperties": false
+}

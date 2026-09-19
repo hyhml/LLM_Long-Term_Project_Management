@@ -1,0 +1,7 @@
+interface:
+  display_name: "Long-Term Project Manager"
+  short_description: "Manage durable projects across separate conversations"
+  default_prompt: "Use $long-term-project-manager to initialize or maintain a long-running project."
+
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "framework_version": "0.1.0",
+  "priority_semantics": {
+    "load_priority": ["high", "low"],
+    "task_priority": ["high", "low"],
+    "status": ["active", "deferred", "done"]
+  },
+  "roles": [
+    {
+      "id": "framework",
+      "load_priority": "high",
+      "purpose": "Initialize the private machine profile, generate project-local skills, validate structures, and provide packaging tools."
+    },
+    {
+      "id": "maintainer",
+      "load_priority": "high",
+      "purpose": "Discuss state with the user, create itemized proposals, and commit only accepted project-state changes."
+    },
+    {
+      "id": "explorer",
+      "load_priority": "high",
+      "purpose": "Execute one confirmed task and produce a handoff without editing authoritative management state."
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "project-bootstrap",
+      "load_priority": "low",
+      "trigger": "The user asks to create or initialize a managed project.",
+      "reference": "references/bootstrap.md",
+      "status": "active"
+    },
+    {
+      "id": "machine-profile",
+      "load_priority": "low",
+      "trigger": "The private machine profile is missing or the user asks to update it.",
+      "reference": "references/local-environment.md",
+      "status": "active"
+    },
+    {
+      "id": "explore-package",
+      "load_priority": "low",
+      "trigger": "A confirmed task is being explored or needs to be handed to another conversation.",
+      "reference": "references/explore-and-package.md",
+      "status": "active"
+    },
+    {
+      "id": "integrate-package",
+      "load_priority": "low",
+      "trigger": "A .llmpack file must be verified, unpacked, reviewed, or integrated.",
+      "reference": "references/integrate.md",
+      "status": "active"
+    }
+  ],
+  "framework_backlog": {
+    "high": [
+      {
+        "id": "parallel-exploration",
+        "status": "deferred",
+        "summary": "Support merging multiple exploration packages based on the same project revision."
+      }
+    ],
+    "low": [
+      {
+        "id": "chatgpt-web-port",
+        "status": "deferred",
+        "summary": "Adapt the framework for ChatGPT on the web."
+      },
+      {
+        "id": "automatic-environment-refresh",
+        "status": "deferred",
+        "summary": "Detect and propose machine-profile changes automatically."
+      },
+      {
+        "id": "signed-packages",
+        "status": "deferred",
+        "summary": "Add package authenticity signatures in addition to integrity hashes."
+      }
+    ]
+  }
+}
