@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "framework_version": "0.1.0",
+  "framework_version": "0.4.0",
   "priority_semantics": {
     "load_priority": ["high", "low"],
     "task_priority": ["high", "low"],
@@ -21,6 +21,60 @@
       "id": "explorer",
       "load_priority": "high",
       "purpose": "Execute one confirmed task and produce a handoff without editing authoritative management state."
+    }
+  ],
+  "storage_invariants": [
+    {
+      "id": "formal-data-authority",
+      "load_priority": "high",
+      "rule": "Accepted state/, records/, and sources/ are authoritative; views/ and index/ are rebuildable derivatives and must not be edited as project authority."
+    },
+    {
+      "id": "pending-work-separation",
+      "load_priority": "high",
+      "rule": "Exploration and unconfirmed findings remain under work/ until itemized proposal and user acceptance commit them to records/."
+    },
+    {
+      "id": "package-transport-boundary",
+      "load_priority": "high",
+      "rule": "packages/ transports proposals, artifacts, and receipts; package presence or integrity never makes content authoritative."
+    },
+    {
+      "id": "stable-objective-contract",
+      "load_priority": "high",
+      "rule": "A project has one stable objective_id and explicit objective, scope, non-goals, assumptions, evidence standard, and completion standard; objective revisions require itemized acceptance."
+    },
+    {
+      "id": "epistemic-separation",
+      "load_priority": "high",
+      "rule": "Claims, evidence, attempts, reviews, and decisions remain distinct; execution success and integrity checks do not prove a claim."
+    },
+    {
+      "id": "unified-write-transaction",
+      "load_priority": "high",
+      "rule": "Every important management write uses base revision, itemized proposals, user decisions, candidate validation, one revision advance, publication, and a receipt."
+    },
+    {
+      "id": "retrieval-coverage",
+      "load_priority": "high",
+      "rule": "Every retrieval reports searched and unsearched authorized scope and index freshness; an empty result never proves project-wide absence."
+    }
+  ],
+  "governance_invariants": [
+    {
+      "id": "two-axis-change-classification",
+      "load_priority": "high",
+      "rule": "Continuously classify every material work item by layer, data subtype, and audience, then derive authority, storage, validation, version, and release controls; re-evaluate at new branches and lifecycle boundaries and split mixed work before writing."
+    },
+    {
+      "id": "classification-boundary-preservation",
+      "load_priority": "high",
+      "rule": "Framework changes never silently mutate accepted project data, data:project changes never modify framework rules, and developer-only artifacts are never represented as distributed runtime behavior."
+    },
+    {
+      "id": "regression-proposal-boundary",
+      "load_priority": "high",
+      "rule": "A reproducible reusable defect triggers a regression-test proposal; framework test code may use synthetic fixtures, while real cases and gold data remain separately accepted external regression/evaluation data."
     }
   ],
   "capabilities": [
@@ -50,6 +104,27 @@
       "load_priority": "low",
       "trigger": "A .llmpack file must be verified, unpacked, reviewed, or integrated.",
       "reference": "references/integrate.md",
+      "status": "active"
+    },
+    {
+      "id": "formal-commit",
+      "load_priority": "low",
+      "trigger": "Any accepted change is about to be written to project management data.",
+      "reference": "references/commit.md",
+      "status": "active"
+    },
+    {
+      "id": "project-retrieval",
+      "load_priority": "low",
+      "trigger": "The user or task searches project knowledge or builds, refreshes, or evaluates an index.",
+      "reference": "references/retrieval.md",
+      "status": "active"
+    },
+    {
+      "id": "change-classification",
+      "load_priority": "low",
+      "trigger": "A change is mixed, ambiguous, crosses project/framework authority, or affects runtime and developer audiences differently.",
+      "reference": "references/change-classification.md",
       "status": "active"
     }
   ],

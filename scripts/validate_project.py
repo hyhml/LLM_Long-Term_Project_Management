@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate structural invariants of a generated project-local skill."""
+"""Validate authoritative project data, derived views, and retrieval coverage metadata."""
 
 from __future__ import annotations
 
@@ -9,16 +9,30 @@ import re
 import sys
 from pathlib import Path
 
+from render_project_views import build_project_map, load_inputs, load_object
+
 
 REQUIRED = (
     "SKILL.md",
     "agents/openai.yaml",
     "framework/version.json",
-    "state/project-map.json",
-    "state/current-focus.json",
-    "database/index.json",
+    "state/project.json",
+    "state/task-board.json",
+    "records/store.json",
+    "sources/registry.json",
+    "views/project-map.json",
+    "index/manifest.json",
 )
+SCHEMAS = {
+    "project": "ltpm-project-state/v2",
+    "board": "ltpm-task-board/v1",
+    "store": "ltpm-record-store/v2",
+    "sources": "ltpm-source-registry/v1",
+    "view": "ltpm-project-map-view/v3",
+    "index": "ltpm-index-manifest/v1",
+}
 PRIORITIES = {"high", "low"}
+TASK_STATUSES = {"pending", "active", "blocked", "done"}
 RELATIONS = {
     "contains",
     "depends_on",
@@ -30,14 +44,87 @@ RELATIONS = {
     "supersedes",
     "blocks",
     "derived_from",
+    "evaluates",
+    "decides",
+    "cites",
 }
+CORE_KINDS = {"task", "claim", "evidence", "attempt", "review", "decision", "question", "artifact", "risk"}
+DISALLOWED_FORMAL_KINDS = {"log", "cache", "raw-output", "temporary"}
+FAILED_ATTEMPT_FIELDS = {
+    "attempted",
+    "failure_reason",
+    "failure_conditions",
+    "retry_conditions",
+    "evidence_or_reproduction",
+}
+TASK_CONTRACT_SCHEMA = "ltpm-task-contract/v1"
+CLASSIFICATION_LAYERS = {"framework", "data", "mixed", "none/read-only"}
+DATA_SUBTYPES = {"project", "regression", "evaluation", "environment", "private-user"}
+AUDIENCES = {"runtime-user", "developer", "both"}
+CONTROL_FIELDS = {"write_authority", "storage_targets", "validation_route", "version_route", "release_boundary"}
 
 
-def load_json(path: Path) -> dict:
-    value = json.loads(path.read_text(encoding="utf-8"))
+def non_empty(value: object) -> bool:
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, list):
+        return bool(value)
+    if isinstance(value, dict):
+        return bool(value)
+    return value is not None
+
+
+def valid_extension(value: object) -> bool:
+    return isinstance(value, str) and re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*", value) is not None
+
+
+def validate_task_contract(value: object) -> list[str]:
+    errors: list[str] = []
     if not isinstance(value, dict):
-        raise ValueError(f"expected JSON object: {path}")
-    return value
+        return ["task_contract must be null or an object"]
+    if value.get("schema") != TASK_CONTRACT_SCHEMA:
+        errors.append("task_contract has an unsupported schema")
+    for field in ("expected_result", "stop_condition"):
+        if not non_empty(value.get(field)):
+            errors.append(f"task_contract {field} must not be empty")
+    for field in ("scope", "non_goals", "acceptance_evidence", "allowed_side_effects"):
+        items = value.get(field)
+        if not isinstance(items, list) or any(not isinstance(item, str) or not item.strip() for item in items):
+            errors.append(f"task_contract {field} must be a list of non-empty strings")
+    if isinstance(value.get("scope"), list) and not value["scope"]:
+        errors.append("task_contract scope must not be empty")
+    if isinstance(value.get("acceptance_evidence"), list) and not value["acceptance_evidence"]:
+        errors.append("task_contract acceptance_evidence must not be empty")
+
+    classification = value.get("classification")
+    if not isinstance(classification, dict):
+        errors.append("task_contract classification must be an object")
+    else:
+        layer = classification.get("layer")
+        if layer not in CLASSIFICATION_LAYERS:
+            errors.append("task_contract classification layer is invalid")
+        if layer == "data" and classification.get("data_subtype") not in DATA_SUBTYPES:
+            errors.append("task_contract classification data_subtype is invalid")
+        if classification.get("audience") not in AUDIENCES:
+            errors.append("task_contract classification audience is invalid")
+        if layer != "data" or classification.get("data_subtype") != "project":
+            errors.append("a formal project task contract must be classified as data:project")
+
+    control = value.get("control_plan")
+    if not isinstance(control, dict):
+        errors.append("task_contract control_plan must be an object")
+    else:
+        missing = CONTROL_FIELDS - set(control)
+        if missing:
+            errors.append(f"task_contract control_plan is missing: {', '.join(sorted(missing))}")
+        for field in ("storage_targets", "validation_route"):
+            items = control.get(field)
+            if not isinstance(items, list) or not items or any(not isinstance(item, str) or not item.strip() for item in items):
+                errors.append(f"task_contract control_plan {field} must be a non-empty string list")
+        for field in ("write_authority", "version_route", "release_boundary"):
+            if not non_empty(control.get(field)):
+                errors.append(f"task_contract control_plan {field} must not be empty")
+    return errors
 
 
 def validate(root: Path) -> list[str]:
@@ -56,70 +143,183 @@ def validate(root: Path) -> list[str]:
         errors.append("project skill must disable implicit invocation")
 
     try:
-        project_map = load_json(root / "state" / "project-map.json")
-        focus = load_json(root / "state" / "current-focus.json")
-        database = load_json(root / "database" / "index.json")
-        version = load_json(root / "framework" / "version.json")
+        project, board, store, sources = load_inputs(root)
+        view = load_object(root / "views" / "project-map.json")
+        index = load_object(root / "index" / "manifest.json")
+        version = load_object(root / "framework" / "version.json")
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         errors.append(str(exc))
         return errors
 
-    project_ids = {project_map.get("project_id"), focus.get("project_id"), database.get("project_id"), version.get("project_id")}
-    if None in project_ids or len(project_ids) != 1:
+    values = {"project": project, "board": board, "store": store, "sources": sources, "view": view, "index": index}
+    for name, schema in SCHEMAS.items():
+        if values[name].get("schema") != schema:
+            errors.append(f"unsupported {name} schema")
+
+    project_id = project.get("project_id")
+    project_ids = [board.get("project_id"), store.get("project_id"), sources.get("project_id"), view.get("project_id"), index.get("project_id"), version.get("project_id")]
+    if not isinstance(project_id, str) or not project_id or any(value != project_id for value in project_ids):
         errors.append("project_id is missing or inconsistent")
-    if not isinstance(project_map.get("revision"), int) or project_map["revision"] < 0:
-        errors.append("project map revision must be a non-negative integer")
-    if focus.get("map_revision") != project_map.get("revision"):
-        errors.append("current-focus map_revision does not match project map")
+    if not non_empty(project.get("project_name")):
+        errors.append("project_name must not be empty")
+    revision = project.get("revision")
+    if not isinstance(revision, int) or isinstance(revision, bool) or revision < 0:
+        errors.append("project revision must be a non-negative integer")
+    for name, value in (("task board", board), ("record store", store), ("source registry", sources)):
+        if value.get("project_revision") != revision:
+            errors.append(f"{name} revision does not match project revision")
 
-    nodes = project_map.get("nodes")
-    if not isinstance(nodes, list):
-        errors.append("nodes must be a list")
-        nodes = []
-    ids = [node.get("id") for node in nodes if isinstance(node, dict)]
-    if None in ids or len(ids) != len(set(ids)) or len(ids) != len(nodes):
-        errors.append("node IDs must be present and unique")
-    task_ids = set()
-    task_priorities: dict[str, str] = {}
-    for node in nodes:
-        if not isinstance(node, dict):
+    contract = project.get("objective_contract")
+    contract_ids: set[str] = set()
+    if not isinstance(contract, dict):
+        errors.append("objective_contract must be an object")
+    else:
+        objective_id = contract.get("objective_id")
+        if not isinstance(objective_id, str) or not objective_id:
+            errors.append("objective_contract requires a stable objective_id")
+        else:
+            contract_ids.add(objective_id)
+        if not isinstance(contract.get("objective_revision"), int) or isinstance(contract.get("objective_revision"), bool) or contract.get("objective_revision", -1) < 0:
+            errors.append("objective_revision must be a non-negative integer")
+        if not non_empty(contract.get("objective")):
+            errors.append("objective must not be empty")
+        for field in ("scope", "non_goals", "assumptions", "evidence_standard", "completion_standard"):
+            if not isinstance(contract.get(field), list) or any(not isinstance(item, str) or not item.strip() for item in contract.get(field, [])):
+                errors.append(f"objective_contract {field} must be a list of non-empty strings")
+        for required_non_empty in ("scope", "evidence_standard", "completion_standard"):
+            if isinstance(contract.get(required_non_empty), list) and not contract[required_non_empty]:
+                errors.append(f"objective_contract {required_non_empty} must not be empty")
+
+    records = store.get("records")
+    if not isinstance(records, list):
+        errors.append("records must be a list")
+        records = []
+    record_ids: set[str] = set()
+    task_ids: set[str] = set()
+    for record in records:
+        if not isinstance(record, dict):
+            errors.append("formal record must be an object")
             continue
-        if node.get("type") == "task":
-            task_ids.add(node.get("id"))
-            if node.get("task_priority") not in PRIORITIES:
-                errors.append(f"invalid task priority for {node.get('id')}")
-            else:
-                task_priorities[node["id"]] = node["task_priority"]
+        record_id = record.get("id")
+        if not isinstance(record_id, str) or not record_id or record_id in record_ids:
+            errors.append("formal record IDs must be non-empty and unique")
+            continue
+        record_ids.add(record_id)
+        if not non_empty(record.get("title")):
+            errors.append(f"formal record title must not be empty: {record_id}")
+        if record.get("confirmation_status") != "accepted":
+            errors.append(f"formal record is not accepted: {record_id}")
+        kind = record.get("kind")
+        if kind in DISALLOWED_FORMAL_KINDS:
+            errors.append(f"transient material cannot be a formal record: {record_id}")
+        elif kind not in CORE_KINDS and not valid_extension(kind):
+            errors.append(f"invalid record kind for {record_id}; use a core kind or namespaced extension")
+        if kind == "task":
+            task_ids.add(record_id)
+        content = record.get("content")
+        if not isinstance(content, dict):
+            errors.append(f"formal record content must be an object: {record_id}")
+            continue
+        if kind == "attempt" and content.get("outcome") == "failed":
+            missing = sorted(field for field in FAILED_ATTEMPT_FIELDS if not non_empty(content.get(field)))
+            if missing:
+                errors.append(f"failed attempt {record_id} lacks reusable failure context: {', '.join(missing)}")
 
-    for relation in project_map.get("relations", []):
+    board_tasks = board.get("tasks")
+    listed_task_ids: list[str] = []
+    if not isinstance(board_tasks, dict) or set(board_tasks) != PRIORITIES:
+        errors.append("task board must contain exactly high and low task lists")
+    else:
+        for priority, entries in board_tasks.items():
+            if not isinstance(entries, list):
+                errors.append(f"task board {priority} must be a list")
+                continue
+            for entry in entries:
+                if not isinstance(entry, dict):
+                    errors.append(f"task board {priority} entry must be an object")
+                    continue
+                task_id = entry.get("task_id")
+                if not isinstance(task_id, str) or not task_id:
+                    errors.append(f"task board {priority} task_id must be a non-empty string")
+                    continue
+                listed_task_ids.append(task_id)
+                if task_id not in task_ids:
+                    errors.append(f"task board references an unknown task: {task_id}")
+                if entry.get("status") not in TASK_STATUSES:
+                    errors.append(f"invalid task status for {task_id}")
+        if len(listed_task_ids) != len(set(listed_task_ids)) or set(listed_task_ids) != task_ids:
+            errors.append("every formal task must appear exactly once in the task board")
+
+    focus = project.get("current_focus")
+    if not isinstance(focus, dict):
+        errors.append("current_focus must be an object")
+    else:
+        if focus.get("active_task_id") is not None and focus.get("active_task_id") not in task_ids:
+            errors.append("active_task_id is not a known formal task")
+        if focus.get("task_contract") is not None:
+            errors.extend(validate_task_contract(focus.get("task_contract")))
+
+    source_values = sources.get("sources")
+    if not isinstance(source_values, list):
+        errors.append("sources registry must contain a sources list")
+        source_values = []
+    source_ids: set[str] = set()
+    for source in source_values:
+        if not isinstance(source, dict):
+            errors.append("registered source must be an object")
+            continue
+        source_id = source.get("source_id")
+        if not isinstance(source_id, str) or not source_id or source_id in source_ids:
+            errors.append("source IDs must be non-empty and unique")
+            continue
+        source_ids.add(source_id)
+        if source.get("confirmation_status") != "accepted":
+            errors.append(f"registered source is not accepted: {source_id}")
+        for field in ("source_type", "title", "access_scope"):
+            if not non_empty(source.get(field)):
+                errors.append(f"registered source {source_id} requires {field}")
+
+    relations = store.get("relations")
+    if not isinstance(relations, list):
+        errors.append("relations must be a list")
+        relations = []
+    endpoints = contract_ids | record_ids | source_ids
+    relation_ids: set[str] = set()
+    for relation in relations:
         if not isinstance(relation, dict):
             errors.append("relation must be an object")
             continue
-        if relation.get("from") not in ids or relation.get("to") not in ids:
-            errors.append("relation references an unknown node")
-        if relation.get("type") not in RELATIONS:
-            errors.append(f"invalid relation type: {relation.get('type')}")
+        relation_id = relation.get("id")
+        if not isinstance(relation_id, str) or not relation_id or relation_id in relation_ids:
+            errors.append("formal relation IDs must be non-empty and unique")
+            continue
+        relation_ids.add(relation_id)
+        if relation.get("confirmation_status") != "accepted":
+            errors.append(f"formal relation is not accepted: {relation_id}")
+        relation_from = relation.get("from")
+        relation_to = relation.get("to")
+        if not isinstance(relation_from, str) or not isinstance(relation_to, str) or relation_from not in endpoints or relation_to not in endpoints:
+            errors.append(f"relation references an unknown endpoint: {relation_id}")
+        relation_type = relation.get("type")
+        if relation_type not in RELATIONS and not valid_extension(relation_type):
+            errors.append(f"invalid relation type: {relation_type}")
 
-    focus_tasks = focus.get("tasks", {})
-    if set(focus_tasks) != PRIORITIES:
-        errors.append("current-focus tasks must contain exactly high and low")
+    coverage = index.get("coverage")
+    if index.get("status") not in {"not-built", "ready", "stale"}:
+        errors.append("index status must be not-built, ready, or stale")
+    if not isinstance(coverage, dict):
+        errors.append("index manifest must report coverage")
     else:
-        listed_task_ids: list[str] = []
-        for priority, values in focus_tasks.items():
-            if not isinstance(values, list) or any(value not in task_ids for value in values):
-                errors.append(f"current-focus {priority} contains an unknown task")
-                continue
-            listed_task_ids.extend(values)
-            for value in values:
-                if task_priorities.get(value) != priority:
-                    errors.append(f"current-focus priority does not match project map for {value}")
-        if len(listed_task_ids) != len(set(listed_task_ids)) or set(listed_task_ids) != task_ids:
-            errors.append("every project-map task must appear exactly once in current-focus")
-    active_task = focus.get("active_task_id")
-    if active_task is not None and active_task not in task_ids:
-        errors.append("active_task_id is not a known task")
-    if not isinstance(database.get("records"), list):
-        errors.append("database records must be a list")
+        for field in ("authorized_scope", "indexed_record_ids", "indexed_source_ids", "indexed_paths", "exclusions"):
+            if not isinstance(coverage.get(field), list):
+                errors.append(f"index coverage {field} must be a list")
+
+    try:
+        expected_view = build_project_map(project, board, store, sources)
+        if view != expected_view:
+            errors.append("views/project-map.json is stale or manually edited; regenerate it from formal data")
+    except ValueError as exc:
+        errors.append(str(exc))
     return errors
 
 

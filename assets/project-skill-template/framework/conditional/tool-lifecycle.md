@@ -8,7 +8,7 @@ For each created or imported tool, record:
 - security or privacy risks;
 - expected reuse and maintenance cost.
 
-Keep tools in `workbench/candidate-tools/` until the user chooses:
+Keep tools in `work/candidate-tools/` until the user chooses:
 
 - `promote`: retain as a documented project tool;
 - `archive`: preserve with the task history but do not treat as active;
