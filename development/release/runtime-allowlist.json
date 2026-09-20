@@ -1,0 +1,51 @@
+{
+  "schema": "ltpm-runtime-allowlist/v1",
+  "runtime_files": [
+    ".gitignore",
+    "README.md",
+    "SKILL.md",
+    "agents/openai.yaml",
+    "assets/project-skill-template/SKILL.md.tmpl",
+    "assets/project-skill-template/agents/openai.yaml.tmpl",
+    "assets/project-skill-template/framework/conditional/explore.md",
+    "assets/project-skill-template/framework/conditional/integrate.md",
+    "assets/project-skill-template/framework/conditional/retrieval.md",
+    "assets/project-skill-template/framework/conditional/tool-lifecycle.md",
+    "assets/project-skill-template/framework/conditional/transaction.md",
+    "assets/project-skill-template/framework/version.json.tmpl",
+    "references/bootstrap.md",
+    "references/change-classification.md",
+    "references/commit.md",
+    "references/data-model.md",
+    "references/explore-and-package.md",
+    "references/framework-map.json",
+    "references/handoff-schema.json",
+    "references/integrate.md",
+    "references/local-environment.md",
+    "references/retrieval.md",
+    "scripts/environment_profile.py",
+    "scripts/handoff.py",
+    "scripts/init_project.py",
+    "scripts/project_transaction.py",
+    "scripts/render_project_views.py",
+    "scripts/search_project.py",
+    "scripts/validate_project.py"
+  ],
+  "developer_files": [
+    "AGENTS.md"
+  ],
+  "developer_prefixes": [
+    "development/",
+    "tests/"
+  ],
+  "local_excluded_prefixes": [
+    ".git/",
+    "private/"
+  ],
+  "local_excluded_names": [
+    "__pycache__"
+  ],
+  "local_excluded_suffixes": [
+    ".pyc"
+  ]
+}

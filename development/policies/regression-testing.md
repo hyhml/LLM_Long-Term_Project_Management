@@ -29,6 +29,8 @@ The executable core suite mirrors those contracts directly:
 
 `tests/support.py` creates only synthetic projects and temporary inputs. A test that needs a real incident, retrieval corpus, or gold answer belongs to an external, separately authorized dataset run rather than this core suite.
 
+`tests/test_release_bundle.py` is a feature-contract suite for ADR-0011. It is developer-only and verifies the runtime distribution boundary without becoming part of the six invariant modules or the user bundle.
+
 Feature-specific tests are justified when a feature adds another durable contract. Do not write tests that merely freeze wording, function layout, incidental JSON ordering, or another replaceable implementation detail unless that detail is itself a published contract.
 
 ## Change order

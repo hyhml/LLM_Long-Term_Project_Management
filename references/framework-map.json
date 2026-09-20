@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "framework_version": "0.4.0-dev.1",
+  "framework_version": "0.4.0-rc.1",
   "priority_semantics": {
     "load_priority": ["high", "low"],
     "task_priority": ["high", "low"],

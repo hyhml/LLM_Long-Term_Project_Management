@@ -33,6 +33,5 @@ Build and maintain project-local skills without turning this framework skill int
 - Before any accepted write to project management data, read `references/commit.md`.
 - For project knowledge retrieval or index work, read `references/retrieval.md`.
 - Read `references/change-classification.md` when establishing or revising a control plan, especially when a new work branch, persistence target, or release boundary appears.
-- Only when the user explicitly requests development of this framework and `development/adr/index.json` exists, enter development mode: read that index and every ADR it marks relevant to the requested design area before proposing changes. For test-impact or regression work, also read `development/policies/regression-testing.md` when present. A `proposed` ADR is design context, not a runtime rule. The absence of `development/` is normal in the distributed runtime skill.
 
 The generated project skill is explicitly invoked and carries a versioned snapshot of the framework rules. It may read this skill's private machine profile at runtime, but it must not copy that profile into the project.

@@ -12,7 +12,7 @@ git clone --depth 1 --single-branch --branch main \
   ~/.agents/skills/long-term-project-manager
 ```
 
-`main` 只包含用户运行所需内容。架构决策记录位于单独的 `development` 分支；上述单分支安装不会下载该分支。只有框架开发者需要切换到 `development`。
+`main` 由运行时白名单自动构建，只包含用户运行所需内容。架构决策、测试和发布工具位于单独的 `development` 分支；上述单分支安装不会下载这些开发材料。只有框架开发者需要切换到 `development`。
 
 重启 Codex 后显式调用：
 
@@ -35,10 +35,3 @@ $long-term-project-manager 初始化这个项目
 skill 会把分类作为持续控制：对每个实质工作项判断框架层或数据层、数据子类型以及受众，并据此确定写入权限、存储位置、验证方式、版本路径和发布边界。新分支出现或即将持久化、打包、发布、交接时会重新判断；混合变更先拆分，开发态内容不会被描述成已经发布的运行时功能。
 
 `.llmpack` 使用逐文件 SHA-256 校验完整性，但当前版本不提供发送者身份认证。导入的脚本不会自动执行。
-
-## 开发验证
-
-```bash
-python -m unittest discover -s tests -v
-python /path/to/skill-creator/scripts/quick_validate.py .
-```
