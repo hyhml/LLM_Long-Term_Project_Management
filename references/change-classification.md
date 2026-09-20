@@ -1,35 +1,55 @@
-# Change classification and dialogue disclosure
+# Classification-driven control loop
 
-Classify a substantive managed request on two independent axes before choosing files, write authority, versioning, or release behavior.
+Classification is a continuing control decision for each material work item. It determines authority, storage, validation, versioning, and release behavior; the dialogue label is only its visible summary.
 
-## Axis 1: change layer
+## Classify the work item
 
-- `project-data`: changes one concrete project's contract, tasks, records, relations, sources, work material, candidate tools, or authorized project artifacts. Accepted management changes use the project transaction and project revision.
-- `framework`: changes reusable rules, schemas, templates, scripts, protocols, framework backlog, ADRs, or framework version. It requires explicit framework development mode and must not silently rewrite a concrete project's accepted data.
-- `mixed`: contains both; split it into a project-data change and a framework change with separate write paths, versions, validation, and release statements.
-- `none/read-only`: inspection, explanation, or planning that changes neither authority.
+Layer:
 
-Classify by what authority changes. Using a framework tool to update one project is still `project-data`. Changing the generic record schema is `framework`, even though its subject is data storage. Creating a new child project with an unchanged initializer creates project data; it does not modify the framework.
+- `framework`: reusable rules, schemas, templates, scripts, protocols, ADRs, framework tests, or framework version;
+- `data`: persisted content governed by a framework;
+- `mixed`: more than one authority boundary; split before writing;
+- `none/read-only`: no authority changes.
 
-## Axis 2: audience
+For `data`, add one subtype:
 
-- `runtime-user`: changes behavior or material delivered to people using the released skill or a concrete project.
-- `developer`: changes development-only ADRs, tests, diagnostics, migration design, or maintainer material excluded from runtime distribution.
-- `both`: affects both groups; maintain distinct artifacts and state what reaches each audience and branch.
+- `project`: one concrete project's contract, tasks, records, relations, sources, work, tools, or authorized artifacts;
+- `regression`: real incidents and reproductions retained to prevent a known defect from returning;
+- `evaluation`: benchmark prompts, expected answers, scoring rules, and comparison results;
+- `environment`: local models, tools, paths, capabilities, and compatibility facts;
+- `private-user`: user material requiring stricter access and export boundaries.
 
-Audience is determined by who consumes the result, not by file extension. A user guide may be runtime-facing; an ADR about the same feature is developer-facing.
+Audience is independent: `runtime-user`, `developer`, or `both`.
 
-## Dialogue contract
+Classify by the authority changed, not by topic or tool. Using a framework tool to update a project is `data:project`. Changing a generic data schema is `framework`. Creating a child project with an unchanged initializer creates `data:project`; it does not modify the framework.
 
-At the first substantive progress update, state at least:
+## Derive the control plan
 
-```text
-变更分类：
-- 层级：project-data / framework / mixed / none-read-only
-- 受众：runtime-user / developer / both
-- 生效与写入边界：具体项目 revision、development、main，或无写入
-```
+For each material item, derive:
 
-Keep this short when classification is obvious. Explain the reason and split plan when it is mixed or ambiguous. If work crosses a boundary later, stop that part, disclose the reclassification, and apply the newly required confirmation/version/release protocol.
+- `write_authority`: who or which confirmed workflow may write;
+- `storage_targets`: allowed live, candidate, development, or external locations;
+- `validation_route`: invariant, schema, workflow, evaluation, or human review required;
+- `version_route`: project revision, objective revision, framework version, dataset version, or none;
+- `release_boundary`: project-local, development-only, runtime release, external dataset, or no release.
 
-In the final response, restate the classification for material changes and report where each class was written, versioned, and released. Do not describe developer-only artifacts as installed runtime behavior, or a framework template change as if it migrated existing project data.
+A label without these consequences is incomplete classification. A formal project task contract stores its classification and control plan. Framework development records the same reasoning in dialogue, ADR/version material, and the development branch rather than in project state.
+
+## Re-evaluate continuously
+
+Re-run classification when:
+
+- the user introduces a new objective, subtask, data source, test, or audience;
+- analysis produces a reusable framework proposal or a real regression case;
+- work is about to move from discussion or `work/` into formal storage;
+- a tool, package, or external source is about to be retained;
+- a revision, migration, export, merge, or release is proposed;
+- the final handoff reconciles what actually changed.
+
+The assistant performs the decomposition proactively. Ask the user only when ambiguity would materially change authority, persistence, or release. Do not require the user to supply the classification.
+
+## Dialogue behavior
+
+At the first substantive update, summarize the active work items and their control boundary. Keep obvious cases short. Report new or changed classifications when they affect authority, storage, validation, version, or release; do not repeat unchanged labels on every message.
+
+Before final handoff, reconcile planned and actual classifications. State where each material part was written, versioned, validated, and released. Never describe developer-only artifacts as installed runtime behavior, external evaluation data as project knowledge, or a framework template change as migration of existing projects.

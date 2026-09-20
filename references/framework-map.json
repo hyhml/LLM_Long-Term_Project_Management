@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "framework_version": "0.3.0-dev.2",
+  "framework_version": "0.4.0-dev.1",
   "priority_semantics": {
     "load_priority": ["high", "low"],
     "task_priority": ["high", "low"],
@@ -64,12 +64,17 @@
     {
       "id": "two-axis-change-classification",
       "load_priority": "high",
-      "rule": "Before substantive work, disclose change layer (project-data, framework, mixed, or none/read-only), audience (runtime-user, developer, or both), and write/release boundary; classify by the authority changed and split mixed work."
+      "rule": "Continuously classify every material work item by layer, data subtype, and audience, then derive authority, storage, validation, version, and release controls; re-evaluate at new branches and lifecycle boundaries and split mixed work before writing."
     },
     {
       "id": "classification-boundary-preservation",
       "load_priority": "high",
-      "rule": "Framework changes never silently mutate accepted project data, project-data changes never modify framework rules, and developer-only artifacts are never represented as distributed runtime behavior."
+      "rule": "Framework changes never silently mutate accepted project data, data:project changes never modify framework rules, and developer-only artifacts are never represented as distributed runtime behavior."
+    },
+    {
+      "id": "regression-proposal-boundary",
+      "load_priority": "high",
+      "rule": "A reproducible reusable defect triggers a regression-test proposal; framework test code may use synthetic fixtures, while real cases and gold data remain separately accepted external regression/evaluation data."
     }
   ],
   "capabilities": [

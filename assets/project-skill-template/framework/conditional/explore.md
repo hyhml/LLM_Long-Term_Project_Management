@@ -1,6 +1,6 @@
 # Explorer mode
 
-Use one confirmed task from `views/project-map.json`. Confirm its task contract if any required field is missing.
+Use one confirmed task from `views/project-map.json`. Confirm its task contract if any required field is missing. The contract must classify formal project work as `data:project` and state write authority, storage targets, validation route, project-version route, and project-local release boundary. If exploration creates a framework-tool proposal or exposes a regression case, reclassify that branch and keep it outside formal project state until separately accepted.
 
 Do not edit `state/`, `records/`, `sources/`, `views/`, `index/`, or `packages/archive/`. Put pending notes and unconfirmed findings under `work/explorations/`, and reusable candidate tools under `work/candidate-tools/`. Ordinary project artifacts may be edited only within the accepted side-effect boundary.
 

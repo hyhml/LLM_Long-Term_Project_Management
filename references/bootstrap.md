@@ -15,6 +15,8 @@ Gather and show:
 - whether existing project files should be represented in the map;
 - the proposed destination: `<project-root>/.agents/skills/<skill-name>/`.
 
+Initialization may leave `current_focus.task_contract` null. Before substantive work begins, the confirmed task contract must add its `data:project` classification and derived control plan as described in `references/data-model.md`.
+
 Use stable IDs. Prefer `goal-*`, `task-*`, `decision-*`, `idea-*`, `attempt-*`, `evidence-*`, `artifact-*`, `question-*`, and `risk-*` prefixes. Supported relation types are `contains`, `depends_on`, `causes`, `supports`, `contradicts`, `tests`, `produces`, `supersedes`, `blocks`, and `derived_from`.
 
 ## Create after confirmation

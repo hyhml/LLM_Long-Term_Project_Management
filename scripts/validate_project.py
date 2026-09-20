@@ -24,11 +24,11 @@ REQUIRED = (
     "index/manifest.json",
 )
 SCHEMAS = {
-    "project": "ltpm-project-state/v1",
+    "project": "ltpm-project-state/v2",
     "board": "ltpm-task-board/v1",
     "store": "ltpm-record-store/v2",
     "sources": "ltpm-source-registry/v1",
-    "view": "ltpm-project-map-view/v2",
+    "view": "ltpm-project-map-view/v3",
     "index": "ltpm-index-manifest/v1",
 }
 PRIORITIES = {"high", "low"}
@@ -57,6 +57,11 @@ FAILED_ATTEMPT_FIELDS = {
     "retry_conditions",
     "evidence_or_reproduction",
 }
+TASK_CONTRACT_SCHEMA = "ltpm-task-contract/v1"
+CLASSIFICATION_LAYERS = {"framework", "data", "mixed", "none/read-only"}
+DATA_SUBTYPES = {"project", "regression", "evaluation", "environment", "private-user"}
+AUDIENCES = {"runtime-user", "developer", "both"}
+CONTROL_FIELDS = {"write_authority", "storage_targets", "validation_route", "version_route", "release_boundary"}
 
 
 def non_empty(value: object) -> bool:
@@ -71,6 +76,55 @@ def non_empty(value: object) -> bool:
 
 def valid_extension(value: object) -> bool:
     return isinstance(value, str) and re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*:[a-z0-9]+(?:-[a-z0-9]+)*", value) is not None
+
+
+def validate_task_contract(value: object) -> list[str]:
+    errors: list[str] = []
+    if not isinstance(value, dict):
+        return ["task_contract must be null or an object"]
+    if value.get("schema") != TASK_CONTRACT_SCHEMA:
+        errors.append("task_contract has an unsupported schema")
+    for field in ("expected_result", "stop_condition"):
+        if not non_empty(value.get(field)):
+            errors.append(f"task_contract {field} must not be empty")
+    for field in ("scope", "non_goals", "acceptance_evidence", "allowed_side_effects"):
+        items = value.get(field)
+        if not isinstance(items, list) or any(not isinstance(item, str) or not item.strip() for item in items):
+            errors.append(f"task_contract {field} must be a list of non-empty strings")
+    if isinstance(value.get("scope"), list) and not value["scope"]:
+        errors.append("task_contract scope must not be empty")
+    if isinstance(value.get("acceptance_evidence"), list) and not value["acceptance_evidence"]:
+        errors.append("task_contract acceptance_evidence must not be empty")
+
+    classification = value.get("classification")
+    if not isinstance(classification, dict):
+        errors.append("task_contract classification must be an object")
+    else:
+        layer = classification.get("layer")
+        if layer not in CLASSIFICATION_LAYERS:
+            errors.append("task_contract classification layer is invalid")
+        if layer == "data" and classification.get("data_subtype") not in DATA_SUBTYPES:
+            errors.append("task_contract classification data_subtype is invalid")
+        if classification.get("audience") not in AUDIENCES:
+            errors.append("task_contract classification audience is invalid")
+        if layer != "data" or classification.get("data_subtype") != "project":
+            errors.append("a formal project task contract must be classified as data:project")
+
+    control = value.get("control_plan")
+    if not isinstance(control, dict):
+        errors.append("task_contract control_plan must be an object")
+    else:
+        missing = CONTROL_FIELDS - set(control)
+        if missing:
+            errors.append(f"task_contract control_plan is missing: {', '.join(sorted(missing))}")
+        for field in ("storage_targets", "validation_route"):
+            items = control.get(field)
+            if not isinstance(items, list) or not items or any(not isinstance(item, str) or not item.strip() for item in items):
+                errors.append(f"task_contract control_plan {field} must be a non-empty string list")
+        for field in ("write_authority", "version_route", "release_boundary"):
+            if not non_empty(control.get(field)):
+                errors.append(f"task_contract control_plan {field} must not be empty")
+    return errors
 
 
 def validate(root: Path) -> list[str]:
@@ -199,8 +253,11 @@ def validate(root: Path) -> list[str]:
     focus = project.get("current_focus")
     if not isinstance(focus, dict):
         errors.append("current_focus must be an object")
-    elif focus.get("active_task_id") is not None and focus.get("active_task_id") not in task_ids:
-        errors.append("active_task_id is not a known formal task")
+    else:
+        if focus.get("active_task_id") is not None and focus.get("active_task_id") not in task_ids:
+            errors.append("active_task_id is not a known formal task")
+        if focus.get("task_contract") is not None:
+            errors.extend(validate_task_contract(focus.get("task_contract")))
 
     source_values = sources.get("sources")
     if not isinstance(source_values, list):

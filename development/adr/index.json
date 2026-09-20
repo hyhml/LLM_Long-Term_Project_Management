@@ -79,6 +79,22 @@
       "path": "development/adr/0008-change-classification-and-disclosure.md",
       "topics": ["governance", "change-scope", "audience", "dialogue", "release-boundary"],
       "runtime_effect": "implemented-in-0.3.0-dev.2"
+    },
+    {
+      "id": "ADR-0009",
+      "title": "Classification-driven continuous control",
+      "status": "accepted",
+      "path": "development/adr/0009-continuous-classification-control.md",
+      "topics": ["governance", "classification", "control-plan", "data-subtypes", "task-contract"],
+      "runtime_effect": "implemented-in-0.4.0-dev.1"
+    },
+    {
+      "id": "ADR-0010",
+      "title": "Regression-test policy and external case boundary",
+      "status": "accepted",
+      "path": "development/adr/0010-regression-testing-policy.md",
+      "topics": ["testing", "regression", "invariants", "external-data", "privacy"],
+      "runtime_effect": "implemented-in-0.4.0-dev.1"
     }
   ]
 }

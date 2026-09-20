@@ -9,8 +9,8 @@ import tempfile
 from pathlib import Path
 
 
-VIEW_SCHEMA = "ltpm-project-map-view/v2"
-PROJECT_SCHEMA = "ltpm-project-state/v1"
+VIEW_SCHEMA = "ltpm-project-map-view/v3"
+PROJECT_SCHEMA = "ltpm-project-state/v2"
 TASK_BOARD_SCHEMA = "ltpm-task-board/v1"
 STORE_SCHEMA = "ltpm-record-store/v2"
 SOURCE_SCHEMA = "ltpm-source-registry/v1"
@@ -156,7 +156,7 @@ def build_project_map(project: dict, board: dict, store: dict, sources: dict) ->
         "project_name": project.get("project_name"),
         "source": {
             "project_revision": revision,
-            "generator": "render_project_views.py/v2",
+            "generator": "render_project_views.py/v3",
             "inputs": [
                 "../state/project.json",
                 "../state/task-board.json",

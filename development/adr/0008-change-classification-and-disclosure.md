@@ -55,3 +55,7 @@ The final handoff repeats the classification for material changes and says where
 The classification requirement is directly loaded in the total skill, framework map, and generated child-skill template. Detailed examples are conditionally loaded only for mixed or ambiguous cases.
 
 Classification is a reasoning and dialogue gate, not a deterministic content classifier. The framework can validate locations and versions after the decision, but the model and user remain responsible for correcting a mistaken classification.
+
+## Subsequent refinement
+
+ADR-0009 retains these independent layer and audience axes, adds data subtypes, and replaces the opening-only gate with a continuous control loop. Classification now determines authority, storage, validation, versioning, and release handling throughout the work rather than serving only as dialogue disclosure.

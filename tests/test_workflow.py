@@ -74,13 +74,55 @@ class WorkflowTest(unittest.TestCase):
         self.assertEqual(project_map["source"]["project_revision"], project["revision"])
         self.assertEqual(store["project_revision"], project["revision"])
         self.assertEqual(project["objective_contract"]["objective_id"], "objective-001")
-        self.assertEqual(framework_version["framework_version"], "0.3.0-dev.2")
+        self.assertEqual(framework_version["framework_version"], "0.4.0-dev.1")
         self.assertTrue((self.skill / "state" / "task-board.json").is_file())
         self.assertTrue((self.skill / "sources" / "registry.json").is_file())
         self.assertTrue((self.skill / "index" / "manifest.json").is_file())
         self.assertFalse((self.skill / "database").exists())
         self.assertTrue((self.skill / "work" / "explorations").is_dir())
         self.assertTrue((self.skill / "work" / "candidate-tools").is_dir())
+
+    def test_task_contract_requires_project_classification_and_control_plan(self) -> None:
+        project_path = self.skill / "state" / "project.json"
+        project = json.loads(project_path.read_text(encoding="utf-8"))
+        project["current_focus"]["task_contract"] = {
+            "schema": "ltpm-task-contract/v1",
+            "expected_result": "验证持续分类门",
+            "scope": ["当前项目任务"],
+            "non_goals": ["修改通用框架"],
+            "acceptance_evidence": ["项目验证器通过"],
+            "allowed_side_effects": ["work/ 下的探索记录"],
+            "stop_condition": "取得验收证据或遇到权限边界",
+            "classification": {
+                "layer": "data",
+                "data_subtype": "project",
+                "audience": "runtime-user",
+            },
+            "control_plan": {
+                "write_authority": "explorer may write pending work only",
+                "storage_targets": ["work/explorations/"],
+                "validation_route": ["project validator", "user acceptance"],
+                "version_route": "project revision on accepted commit",
+                "release_boundary": "project-local",
+            },
+        }
+        project_path.write_text(json.dumps(project, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        run(ROOT / "scripts" / "render_project_views.py", self.skill)
+        valid = run(ROOT / "scripts" / "validate_project.py", self.skill)
+        self.assertTrue(json.loads(valid.stdout)["valid"])
+
+        project["current_focus"]["task_contract"]["classification"]["layer"] = "framework"
+        project_path.write_text(json.dumps(project, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        run(ROOT / "scripts" / "render_project_views.py", self.skill)
+        invalid = run(ROOT / "scripts" / "validate_project.py", self.skill, expected=1)
+        self.assertIn("data:project", invalid.stdout)
+
+        project["current_focus"]["task_contract"]["classification"]["layer"] = "data"
+        del project["current_focus"]["task_contract"]["control_plan"]
+        project_path.write_text(json.dumps(project, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        run(ROOT / "scripts" / "render_project_views.py", self.skill)
+        invalid = run(ROOT / "scripts" / "validate_project.py", self.skill, expected=1)
+        self.assertIn("control_plan", invalid.stdout)
 
     def test_view_is_deterministic_and_validator_rejects_manual_edits(self) -> None:
         map_path = self.skill / "views" / "project-map.json"

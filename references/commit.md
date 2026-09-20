@@ -4,6 +4,8 @@ Use this protocol for task changes, exploration archival, handoff integration, c
 
 Read `references/data-model.md` before constructing or editing formal objects.
 
+Before preparing a candidate, confirm that the accepted task contract classifies the work as `data:project` and names its write authority, storage targets, validation route, project-version route, and project-local release boundary. Route framework, regression/evaluation dataset, machine-environment, and private-user writes to separately authorized locations.
+
 ## Prepare
 
 Read the current revision and create an isolated candidate:

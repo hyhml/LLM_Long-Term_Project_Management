@@ -2,6 +2,8 @@
 
 Use the installed framework's formal data model and `project_transaction.py` for every important project-management write.
 
+Before preparing the candidate, confirm that the accepted task contract contains a `data:project` classification and a control plan naming project write authority, allowed storage targets, validation route, project version route, and project-local release boundary. Framework, regression-dataset, evaluation-dataset, environment, and private-user writes require their own authority and must not be smuggled into this transaction.
+
 1. Prepare a candidate from the current live revision.
 2. Present stable, itemized proposals and record every user decision.
 3. Apply only accepted items to the candidate, never to live formal files.

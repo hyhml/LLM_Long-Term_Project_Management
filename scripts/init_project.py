@@ -134,7 +134,7 @@ def main() -> int:
             for index, task_id in enumerate(task_ids["high"] + task_ids["low"], start=1)
         ]
         project_state = {
-            "schema": "ltpm-project-state/v1",
+            "schema": "ltpm-project-state/v2",
             "project_id": project_id,
             "project_name": args.project_name,
             "revision": 0,
