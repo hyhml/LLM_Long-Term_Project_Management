@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "scope": "development-only",
+  "distribution_policy": "excluded-from-main-runtime-branch",
+  "adrs": [
+    {
+      "id": "ADR-0001",
+      "title": "Versioned project record store and derived project map",
+      "status": "proposed",
+      "path": "development/adr/0001-versioned-project-record-store.md",
+      "topics": [
+        "project-storage",
+        "versioning",
+        "project-map",
+        "handoff",
+        "migration",
+        "concurrency"
+      ],
+      "runtime_effect": "none-until-accepted-and-implemented"
+    }
+  ]
+}

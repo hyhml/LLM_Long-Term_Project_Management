@@ -25,5 +25,6 @@ Build and maintain project-local skills without turning this framework skill int
 - To create a project-local skill, read `references/bootstrap.md`.
 - To explore a confirmed task or export a handoff, read `references/explore-and-package.md`.
 - To verify, unpack, review, or integrate a handoff, read `references/integrate.md`.
+- Only when the user explicitly requests development of this framework and `development/adr/index.json` exists, enter development mode: read that index and every ADR it marks relevant to the requested design area before proposing changes. A `proposed` ADR is design context, not a runtime rule. The absence of `development/` is normal in the distributed runtime skill.
 
 The generated project skill is explicitly invoked and carries a versioned snapshot of the framework rules. It may read this skill's private machine profile at runtime, but it must not copy that profile into the project.
