@@ -12,6 +12,8 @@ import sys
 import uuid
 from pathlib import Path
 
+from render_project_views import render as render_project_views
+
 
 SKILL_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
@@ -98,13 +100,18 @@ def main() -> int:
             skill_root / "framework" / "conditional",
         )
 
-        nodes = [
+        records = [
             {
                 "id": "goal-001",
-                "type": "goal",
+                "kind": "goal",
                 "title": args.goal,
-                "status": "confirmed",
-                "database_record_ids": [],
+                "status": "active",
+                "confirmation_status": "accepted",
+                "content": {
+                    "non_goals": args.non_goal,
+                    "completion_criteria": args.criterion,
+                },
+                "detail_record_ids": [],
             }
         ]
         task_ids: dict[str, list[str]] = {"high": [], "low": []}
@@ -114,84 +121,52 @@ def main() -> int:
                 task_id = f"task-{task_number:03d}"
                 task_number += 1
                 task_ids[priority].append(task_id)
-                nodes.append(
+                records.append(
                     {
                         "id": task_id,
-                        "type": "task",
+                        "kind": "task",
                         "title": title,
                         "task_priority": priority,
                         "status": "pending",
-                        "confirmed": True,
-                        "database_record_ids": [],
+                        "confirmation_status": "accepted",
+                        "content": {},
+                        "detail_record_ids": [],
                     }
                 )
 
-        skill_rel = f".agents/skills/{args.skill_name}"
-        project_map = {
-            "schema_version": 1,
+        relations = [
+            {
+                "id": f"relation-{index:03d}",
+                "from": "goal-001",
+                "type": "contains",
+                "to": task_id,
+                "confirmation_status": "accepted",
+            }
+            for index, task_id in enumerate(task_ids["high"] + task_ids["low"], start=1)
+        ]
+        record_store = {
+            "schema": "ltpm-record-store/v1",
             "project_id": project_id,
             "project_name": args.project_name,
             "revision": 0,
-            "goal": args.goal,
-            "non_goals": args.non_goal,
-            "completion_criteria": args.criterion,
-            "nodes": nodes,
-            "relations": [
-                {"from": "goal-001", "type": "contains", "to": task_id}
-                for task_id in task_ids["high"] + task_ids["low"]
-            ],
-            "files": [
-                {
-                    "path": f"{skill_rel}/SKILL.md",
-                    "role": "project skill entry and high-load framework rules",
-                    "load": "always",
-                },
-                {
-                    "path": f"{skill_rel}/state/project-map.json",
-                    "role": "authoritative project relationship map",
-                    "load": "always",
-                },
-                {
-                    "path": f"{skill_rel}/state/current-focus.json",
-                    "role": "confirmed priorities and current task contract",
-                    "load": "always",
-                },
-                {
-                    "path": f"{skill_rel}/database/index.json",
-                    "role": "index of detailed discussion records",
-                    "load": "conditional",
-                },
-                {
-                    "path": f"{skill_rel}/database/records/",
-                    "role": "detailed ideas, attempts, evidence, and decisions",
-                    "load": "only referenced records",
-                },
-            ],
-        }
-        write_json(skill_root / "state" / "project-map.json", project_map)
-        write_json(
-            skill_root / "state" / "current-focus.json",
-            {
-                "schema_version": 1,
-                "project_id": project_id,
-                "map_revision": 0,
+            "records": records,
+            "relations": relations,
+            "current_focus": {
                 "active_task_id": (task_ids["high"] + task_ids["low"] + [None])[0],
-                "tasks": task_ids,
                 "task_contract": None,
             },
-        )
-        write_json(
-            skill_root / "database" / "index.json",
-            {"schema_version": 1, "project_id": project_id, "records": []},
-        )
+        }
+        write_json(skill_root / "records" / "store.json", record_store)
         for relative in (
-            "database/records",
+            "records/materials",
+            "work/explorations",
+            "work/candidate-tools",
             "packages/inbox",
             "packages/outbox",
             "packages/archive",
-            "workbench/candidate-tools",
         ):
             (skill_root / relative).mkdir(parents=True, exist_ok=True)
+        render_project_views(skill_root)
     except Exception:
         if skill_root.exists():
             shutil.rmtree(skill_root)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate structural invariants of a generated project-local skill."""
+"""Validate formal records and the deterministic derived view of a project skill."""
 
 from __future__ import annotations
 
@@ -9,14 +9,15 @@ import re
 import sys
 from pathlib import Path
 
+from render_project_views import build_project_map, load_store
+
 
 REQUIRED = (
     "SKILL.md",
     "agents/openai.yaml",
     "framework/version.json",
-    "state/project-map.json",
-    "state/current-focus.json",
-    "database/index.json",
+    "records/store.json",
+    "views/project-map.json",
 )
 PRIORITIES = {"high", "low"}
 RELATIONS = {
@@ -56,70 +57,73 @@ def validate(root: Path) -> list[str]:
         errors.append("project skill must disable implicit invocation")
 
     try:
-        project_map = load_json(root / "state" / "project-map.json")
-        focus = load_json(root / "state" / "current-focus.json")
-        database = load_json(root / "database" / "index.json")
+        store = load_store(root / "records" / "store.json")
+        view = load_json(root / "views" / "project-map.json")
         version = load_json(root / "framework" / "version.json")
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         errors.append(str(exc))
         return errors
 
-    project_ids = {project_map.get("project_id"), focus.get("project_id"), database.get("project_id"), version.get("project_id")}
+    if store.get("schema") != "ltpm-record-store/v1":
+        errors.append("unsupported records/store.json schema")
+    project_ids = {store.get("project_id"), view.get("project_id"), version.get("project_id")}
     if None in project_ids or len(project_ids) != 1:
         errors.append("project_id is missing or inconsistent")
-    if not isinstance(project_map.get("revision"), int) or project_map["revision"] < 0:
-        errors.append("project map revision must be a non-negative integer")
-    if focus.get("map_revision") != project_map.get("revision"):
-        errors.append("current-focus map_revision does not match project map")
+    if not isinstance(store.get("revision"), int) or isinstance(store.get("revision"), bool) or store["revision"] < 0:
+        errors.append("record store revision must be a non-negative integer")
 
-    nodes = project_map.get("nodes")
-    if not isinstance(nodes, list):
-        errors.append("nodes must be a list")
-        nodes = []
-    ids = [node.get("id") for node in nodes if isinstance(node, dict)]
-    if None in ids or len(ids) != len(set(ids)) or len(ids) != len(nodes):
-        errors.append("node IDs must be present and unique")
-    task_ids = set()
-    task_priorities: dict[str, str] = {}
-    for node in nodes:
-        if not isinstance(node, dict):
+    records = store.get("records")
+    if not isinstance(records, list):
+        errors.append("records must be a list")
+        records = []
+    ids = [record.get("id") for record in records if isinstance(record, dict)]
+    if None in ids or len(ids) != len(set(ids)) or len(ids) != len(records):
+        errors.append("formal record IDs must be present and unique")
+    task_ids: set[str] = set()
+    for record in records:
+        if not isinstance(record, dict):
+            errors.append("formal record must be an object")
             continue
-        if node.get("type") == "task":
-            task_ids.add(node.get("id"))
-            if node.get("task_priority") not in PRIORITIES:
-                errors.append(f"invalid task priority for {node.get('id')}")
-            else:
-                task_priorities[node["id"]] = node["task_priority"]
+        if record.get("confirmation_status") != "accepted":
+            errors.append(f"formal record is not accepted: {record.get('id')}")
+        if record.get("kind") == "task":
+            task_ids.add(record.get("id"))
+            if record.get("task_priority") not in PRIORITIES:
+                errors.append(f"invalid task priority for {record.get('id')}")
 
-    for relation in project_map.get("relations", []):
+    relations = store.get("relations")
+    if not isinstance(relations, list):
+        errors.append("relations must be a list")
+        relations = []
+    relation_ids: list[str | None] = []
+    for relation in relations:
         if not isinstance(relation, dict):
             errors.append("relation must be an object")
             continue
+        relation_ids.append(relation.get("id"))
+        if relation.get("confirmation_status") != "accepted":
+            errors.append(f"formal relation is not accepted: {relation.get('id')}")
         if relation.get("from") not in ids or relation.get("to") not in ids:
-            errors.append("relation references an unknown node")
+            errors.append("relation references an unknown formal record")
         if relation.get("type") not in RELATIONS:
             errors.append(f"invalid relation type: {relation.get('type')}")
+    if None in relation_ids or len(relation_ids) != len(set(relation_ids)):
+        errors.append("formal relation IDs must be present and unique")
 
-    focus_tasks = focus.get("tasks", {})
-    if set(focus_tasks) != PRIORITIES:
-        errors.append("current-focus tasks must contain exactly high and low")
+    focus = store.get("current_focus")
+    if not isinstance(focus, dict):
+        errors.append("current_focus must be an object")
     else:
-        listed_task_ids: list[str] = []
-        for priority, values in focus_tasks.items():
-            if not isinstance(values, list) or any(value not in task_ids for value in values):
-                errors.append(f"current-focus {priority} contains an unknown task")
-                continue
-            listed_task_ids.extend(values)
-            for value in values:
-                if task_priorities.get(value) != priority:
-                    errors.append(f"current-focus priority does not match project map for {value}")
-        if len(listed_task_ids) != len(set(listed_task_ids)) or set(listed_task_ids) != task_ids:
-            errors.append("every project-map task must appear exactly once in current-focus")
-    active_task = focus.get("active_task_id")
-    if active_task is not None and active_task not in task_ids:
-        errors.append("active_task_id is not a known task")
-    if not isinstance(database.get("records"), list):
-        errors.append("database records must be a list")
+        active_task = focus.get("active_task_id")
+        if active_task is not None and active_task not in task_ids:
+            errors.append("active_task_id is not a known formal task")
+
+    try:
+        expected_view = build_project_map(store)
+        if view != expected_view:
+            errors.append("views/project-map.json is stale or manually edited; regenerate it from records/store.json")
+    except ValueError as exc:
+        errors.append(str(exc))
     return errors
 
 

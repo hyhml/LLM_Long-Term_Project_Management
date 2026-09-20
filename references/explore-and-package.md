@@ -2,9 +2,9 @@
 
 ## Start exploration
 
-Read the generated project's `SKILL.md`, `state/project-map.json`, and `state/current-focus.json`. Select a confirmed high-priority task unless the user explicitly chooses otherwise. Confirm or reuse its task contract before acting.
+Read the generated project's `SKILL.md` and directly loaded `views/project-map.json`. Select a confirmed high-priority task unless the user explicitly chooses otherwise. Read only the formal records referenced by the selected node when more detail is needed. Confirm or reuse its task contract before acting.
 
-Do not change authoritative management state. Work on ordinary project artifacts only when the contract permits it.
+Do not change `records/`, `views/`, or `packages/archive/`. Keep pending exploration notes under `work/explorations/`; put reusable candidate tools under `work/candidate-tools/`. Work on ordinary project artifacts only when the contract permits it.
 
 Record:
 
@@ -32,6 +32,6 @@ python scripts/handoff.py export \
 
 Add artifacts with repeated `--artifact SOURCE=artifacts/RELATIVE_PATH` arguments. Symlinks and non-regular files are rejected. Do not include the private machine profile or credentials.
 
-Version 0.1 limits each entry to 256 MiB, the total uncompressed payload to 512 MiB, and the payload to 1,000 entries. Split larger evidence outside the package and include an accepted reference instead.
+The current package schema limits each entry to 256 MiB, the total uncompressed payload to 512 MiB, and the payload to 1,000 entries. Split larger evidence outside the package and include an accepted reference instead.
 
 Run `verify` on the completed package and report its path, package ID, base revision, and SHA-256 digest. The package provides integrity, not sender authenticity.

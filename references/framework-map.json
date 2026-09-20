@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "framework_version": "0.1.0",
+  "framework_version": "0.2.0-dev.1",
   "priority_semantics": {
     "load_priority": ["high", "low"],
     "task_priority": ["high", "low"],
@@ -21,6 +21,23 @@
       "id": "explorer",
       "load_priority": "high",
       "purpose": "Execute one confirmed task and produce a handoff without editing authoritative management state."
+    }
+  ],
+  "storage_invariants": [
+    {
+      "id": "formal-record-authority",
+      "load_priority": "high",
+      "rule": "Accepted records and typed relations under records/ are authoritative; views are deterministic derived navigation and must not be edited as project state."
+    },
+    {
+      "id": "pending-work-separation",
+      "load_priority": "high",
+      "rule": "Exploration and unconfirmed findings remain under work/ until itemized proposal and user acceptance commit them to records/."
+    },
+    {
+      "id": "package-transport-boundary",
+      "load_priority": "high",
+      "rule": "packages/ transports proposals, artifacts, and receipts; package presence or integrity never makes content authoritative."
     }
   ],
   "capabilities": [

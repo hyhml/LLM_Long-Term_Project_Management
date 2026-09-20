@@ -17,6 +17,20 @@
         "concurrency"
       ],
       "runtime_effect": "none-until-accepted-and-implemented"
+    },
+    {
+      "id": "ADR-0002",
+      "title": "Formal records as authority and separation of pending work",
+      "status": "accepted",
+      "path": "development/adr/0002-record-authority-and-work-separation.md",
+      "topics": [
+        "project-storage",
+        "project-map",
+        "workspace",
+        "proposal-commit",
+        "versioning"
+      ],
+      "runtime_effect": "implemented-in-0.2.0-dev.1"
     }
   ]
 }

@@ -6,6 +6,10 @@
 - Distribution: Development branch only; not part of the runtime skill on `main`
 - Runtime effect: None until this ADR is accepted and implemented
 
+## Relationship to ADR-0002
+
+ADR-0002 separately accepts and implements two narrower decisions: formal records are authoritative while the project map is derived, and pending work is separated from accepted records. It uses one mutable, revisioned `records/store.json` suitable for projects with tens of nodes. The content-addressed objects, immutable snapshots, atomic `HEAD`, migration protocol, and parallel conflict model described below remain proposed.
+
 ## Context
 
 The current v0.1 project template stores authoritative mutable state in `state/project-map.json` and `state/current-focus.json`. That is sufficient for an initial single-maintainer workflow, but it combines several concerns:
