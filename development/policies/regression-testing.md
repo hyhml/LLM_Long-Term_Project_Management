@@ -18,6 +18,17 @@ The core suite protects:
 5. **Rebuildability:** generated views and disposable indexes can be reproduced from their declared authority and manual edits are detected.
 6. **Information boundary:** retrieval reports coverage; integrity is not presented as truth or authenticity; privacy, audience, and release claims match actual distribution.
 
+The executable core suite mirrors those contracts directly:
+
+- `tests/test_invariant_01_cross_conversation.py`
+- `tests/test_invariant_02_authority_boundaries.py`
+- `tests/test_invariant_03_transactions.py`
+- `tests/test_invariant_04_project_identity.py`
+- `tests/test_invariant_05_rebuildability.py`
+- `tests/test_invariant_06_information_boundaries.py`
+
+`tests/support.py` creates only synthetic projects and temporary inputs. A test that needs a real incident, retrieval corpus, or gold answer belongs to an external, separately authorized dataset run rather than this core suite.
+
 Feature-specific tests are justified when a feature adds another durable contract. Do not write tests that merely freeze wording, function layout, incidental JSON ordering, or another replaceable implementation detail unless that detail is itself a published contract.
 
 ## Change order
