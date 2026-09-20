@@ -13,11 +13,14 @@ Build and maintain project-local skills without turning this framework skill int
 2. Before starting a substantive project task, agree with the user on a task contract: expected result, scope, non-goals, acceptance evidence, allowed side effects, and stop condition. Reuse an already confirmed contract when it still covers the request.
 3. Prefer the sequence `discover an existing AI/tool capability -> create or adapt the smallest useful tool when justified -> use the tool for the task`. Direct reasoning is allowed when a tool would add no meaningful reliability, reuse, or scale; record that decision briefly.
 4. Put newly created reusable tools in the project's `work/candidate-tools/`. At task close, report purpose, validation, dependencies, risks, and likely reuse, then ask the user to keep, archive, or discard each tool. Do not discard without confirmation.
-5. Keep authoritative accepted project state in `records/` inside the project-local skill, never in this `SKILL.md`. Treat `views/`, including the directly loaded project map, as deterministic navigation derived from formal records. Never commit a project fact by editing a view.
+5. Keep the accepted project contract and task state in `state/`, formal content and typed relations in `records/`, and accepted source metadata in `sources/`. Treat `views/` and `index/` as rebuildable derivatives. Never commit a project fact by editing a view or index.
 6. Project tasks have exactly two priorities: `high` and `low`. Work on confirmed high-priority tasks first unless the user explicitly selects a low-priority task. Never promote, demote, add, or close a task without a proposed change and user confirmation.
-7. Only a maintainer/integrator session may update formal records, and only after itemized acceptance. An explorer session may write pending material under `work/` and change project artifacts within its confirmed task contract, but must not edit `records/`, `views/`, or archived decisions. It produces a handoff package instead.
-8. Import is always two-phase: present individually addressable proposed changes, then commit only the items the user accepts. After a commit, increment the formal record revision once, regenerate views, and validate them. Imported scripts and tools remain quarantined until separately approved.
-9. Keep the private machine profile outside exports. Never record secrets, tokens, raw credentials, or unrelated private paths.
+7. Only a maintainer/integrator session may update formal management data, and only after itemized acceptance. An explorer session may write pending material under `work/` and change project artifacts within its confirmed task contract, but must not edit `state/`, `records/`, `sources/`, `views/`, `index/`, or archived decisions. It produces a handoff package instead.
+8. Preserve one stable `objective_id` and explicit project contract: objective, scope, non-goals, assumptions, evidence standard, and completion standard. Revise it only through an accepted `revise-objective` proposal; represent a different direction as a related node or a new project.
+9. Keep claims, evidence, attempts, reviews, and decisions distinct. Tool success proves execution, package hashes prove integrity, and neither proves a claim. Preserve a failed attempt formally only when it includes what was tried, why and under which conditions it failed, retry conditions, and minimal reproduction or key evidence.
+10. Use one transaction protocol for every important management write: read the current revision, propose items, record each user decision, edit and validate a candidate, increment the revision once, publish, then create a receipt. Imported scripts and tools remain quarantined until separately approved.
+11. Every retrieval result must report searched and unsearched authorized scope, index revision, and coverage gaps. An empty result means only “not found in the searched, indexed, and authorized scope,” never “absent from the project.”
+12. Keep the private machine profile outside exports. Never record secrets, tokens, raw credentials, or unrelated private paths.
 
 ## Route the request
 
@@ -25,6 +28,8 @@ Build and maintain project-local skills without turning this framework skill int
 - To create a project-local skill, read `references/bootstrap.md`.
 - To explore a confirmed task or export a handoff, read `references/explore-and-package.md`.
 - To verify, unpack, review, or integrate a handoff, read `references/integrate.md`.
+- Before any accepted write to project management data, read `references/commit.md`.
+- For project knowledge retrieval or index work, read `references/retrieval.md`.
 - Only when the user explicitly requests development of this framework and `development/adr/index.json` exists, enter development mode: read that index and every ADR it marks relevant to the requested design area before proposing changes. A `proposed` ADR is design context, not a runtime rule. The absence of `development/` is normal in the distributed runtime skill.
 
 The generated project skill is explicitly invoked and carries a versioned snapshot of the framework rules. It may read this skill's private machine profile at runtime, but it must not copy that profile into the project.

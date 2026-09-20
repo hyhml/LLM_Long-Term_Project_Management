@@ -31,6 +31,46 @@
         "versioning"
       ],
       "runtime_effect": "implemented-in-0.2.0-dev.1"
+    },
+    {
+      "id": "ADR-0003",
+      "title": "Stable project objective contract",
+      "status": "accepted",
+      "path": "development/adr/0003-stable-project-objective-contract.md",
+      "topics": ["project-identity", "objective", "scope", "completion"],
+      "runtime_effect": "implemented-in-0.3.0-dev.1"
+    },
+    {
+      "id": "ADR-0004",
+      "title": "Separate content, evidence, evaluation, and decision",
+      "status": "accepted",
+      "path": "development/adr/0004-epistemic-record-separation.md",
+      "topics": ["records", "evidence", "review", "decision"],
+      "runtime_effect": "implemented-in-0.3.0-dev.1"
+    },
+    {
+      "id": "ADR-0005",
+      "title": "Selective retention of failed attempts",
+      "status": "accepted",
+      "path": "development/adr/0005-selective-failure-retention.md",
+      "topics": ["attempts", "failures", "retention", "work"],
+      "runtime_effect": "implemented-in-0.3.0-dev.1"
+    },
+    {
+      "id": "ADR-0006",
+      "title": "Unified accepted-write transaction",
+      "status": "accepted",
+      "path": "development/adr/0006-unified-write-transaction.md",
+      "topics": ["transactions", "revision", "proposal-commit", "receipts"],
+      "runtime_effect": "implemented-in-0.3.0-dev.1"
+    },
+    {
+      "id": "ADR-0007",
+      "title": "Retrieval must report coverage",
+      "status": "accepted",
+      "path": "development/adr/0007-retrieval-coverage.md",
+      "topics": ["retrieval", "index", "authorization", "coverage"],
+      "runtime_effect": "implemented-in-0.3.0-dev.1"
     }
   ]
 }

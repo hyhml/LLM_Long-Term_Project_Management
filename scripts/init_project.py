@@ -39,7 +39,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--skill-name", required=True)
     parser.add_argument("--project-name", required=True)
     parser.add_argument("--goal", required=True)
+    parser.add_argument("--scope", action="append", required=True)
     parser.add_argument("--non-goal", action="append", default=[])
+    parser.add_argument("--assumption", action="append", default=[])
+    parser.add_argument("--evidence-standard", action="append", required=True)
     parser.add_argument("--criterion", action="append", required=True)
     parser.add_argument("--high-task", action="append", default=[])
     parser.add_argument("--low-task", action="append", default=[])
@@ -100,21 +103,9 @@ def main() -> int:
             skill_root / "framework" / "conditional",
         )
 
-        records = [
-            {
-                "id": "goal-001",
-                "kind": "goal",
-                "title": args.goal,
-                "status": "active",
-                "confirmation_status": "accepted",
-                "content": {
-                    "non_goals": args.non_goal,
-                    "completion_criteria": args.criterion,
-                },
-                "detail_record_ids": [],
-            }
-        ]
+        records = []
         task_ids: dict[str, list[str]] = {"high": [], "low": []}
+        task_board: dict[str, list[dict[str, str]]] = {"high": [], "low": []}
         task_number = 1
         for priority, titles in (("high", args.high_task), ("low", args.low_task)):
             for title in titles:
@@ -126,44 +117,103 @@ def main() -> int:
                         "id": task_id,
                         "kind": "task",
                         "title": title,
-                        "task_priority": priority,
-                        "status": "pending",
                         "confirmation_status": "accepted",
                         "content": {},
-                        "detail_record_ids": [],
                     }
                 )
+                task_board[priority].append({"task_id": task_id, "status": "pending"})
 
         relations = [
             {
                 "id": f"relation-{index:03d}",
-                "from": "goal-001",
+                "from": "objective-001",
                 "type": "contains",
                 "to": task_id,
                 "confirmation_status": "accepted",
             }
             for index, task_id in enumerate(task_ids["high"] + task_ids["low"], start=1)
         ]
-        record_store = {
-            "schema": "ltpm-record-store/v1",
+        project_state = {
+            "schema": "ltpm-project-state/v1",
             "project_id": project_id,
             "project_name": args.project_name,
             "revision": 0,
-            "records": records,
-            "relations": relations,
+            "objective_contract": {
+                "objective_id": "objective-001",
+                "objective_revision": 0,
+                "objective": args.goal,
+                "scope": args.scope,
+                "non_goals": args.non_goal,
+                "assumptions": args.assumption,
+                "evidence_standard": args.evidence_standard,
+                "completion_standard": args.criterion,
+            },
             "current_focus": {
                 "active_task_id": (task_ids["high"] + task_ids["low"] + [None])[0],
                 "task_contract": None,
             },
         }
+        board = {
+            "schema": "ltpm-task-board/v1",
+            "project_id": project_id,
+            "project_revision": 0,
+            "tasks": task_board,
+        }
+        record_store = {
+            "schema": "ltpm-record-store/v2",
+            "project_id": project_id,
+            "project_revision": 0,
+            "records": records,
+            "relations": relations,
+        }
+        source_registry = {
+            "schema": "ltpm-source-registry/v1",
+            "project_id": project_id,
+            "project_revision": 0,
+            "sources": [],
+        }
+        index_manifest = {
+            "schema": "ltpm-index-manifest/v1",
+            "project_id": project_id,
+            "status": "not-built",
+            "generated_from_revision": None,
+            "generated_at": None,
+            "coverage": {
+                "authorized_scope": [
+                    "state/project.json",
+                    "state/task-board.json",
+                    "records/store.json",
+                    "sources/registry.json metadata",
+                ],
+                "indexed_record_ids": [],
+                "indexed_source_ids": [],
+                "indexed_paths": [],
+                "exclusions": [
+                    {
+                        "scope": "registered source contents",
+                        "reason": "no retrieval index has been built or authorized",
+                    },
+                    {
+                        "scope": "work/",
+                        "reason": "pending material is not formal project knowledge",
+                    },
+                ],
+            },
+        }
+        write_json(skill_root / "state" / "project.json", project_state)
+        write_json(skill_root / "state" / "task-board.json", board)
         write_json(skill_root / "records" / "store.json", record_store)
+        write_json(skill_root / "sources" / "registry.json", source_registry)
+        write_json(skill_root / "index" / "manifest.json", index_manifest)
         for relative in (
             "records/materials",
             "work/explorations",
             "work/candidate-tools",
+            "work/transactions",
             "packages/inbox",
             "packages/outbox",
             "packages/archive",
+            "packages/archive/receipts",
         ):
             (skill_root / relative).mkdir(parents=True, exist_ok=True)
         render_project_views(skill_root)

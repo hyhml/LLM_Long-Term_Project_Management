@@ -6,6 +6,8 @@
 - Distribution: Development branch only; not part of the runtime skill on `main`
 - Implemented in: `0.2.0-dev.1`
 
+Implementation note: `0.3.0-dev.1` keeps this authority boundary but splits the formal layer into `state/`, `records/`, and `sources/`. The project map remains derived from those formal inputs.
+
 ## Context
 
 The v0.1 design made `state/project-map.json` authoritative. That gave every conversation one convenient file, but mixed durable facts with a navigation format. A future change to map layout, filtering, or visualization could then look like a change to project truth.

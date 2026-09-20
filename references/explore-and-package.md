@@ -4,7 +4,7 @@
 
 Read the generated project's `SKILL.md` and directly loaded `views/project-map.json`. Select a confirmed high-priority task unless the user explicitly chooses otherwise. Read only the formal records referenced by the selected node when more detail is needed. Confirm or reuse its task contract before acting.
 
-Do not change `records/`, `views/`, or `packages/archive/`. Keep pending exploration notes under `work/explorations/`; put reusable candidate tools under `work/candidate-tools/`. Work on ordinary project artifacts only when the contract permits it.
+Do not change `state/`, `records/`, `sources/`, `views/`, `index/`, or `packages/archive/`. Keep pending exploration notes under `work/explorations/`; put reusable candidate tools under `work/candidate-tools/`. Work on ordinary project artifacts only when the contract permits it.
 
 Record:
 
@@ -14,6 +14,8 @@ Record:
 - findings and supporting evidence;
 - failed attempts and conditions under which they failed;
 - open questions and possible next tasks.
+
+A failed direction is worth proposing as a formal `attempt` only when it records what was tried, why it failed, failure conditions, retry conditions, and minimal reproduction or key evidence. Leave ordinary logs, caches, duplicate output, and meaningless intermediate files out of formal proposals.
 
 Package when the user requests handoff, when material progress changes the next decision, or before remaining context becomes unsafe for a complete handoff.
 

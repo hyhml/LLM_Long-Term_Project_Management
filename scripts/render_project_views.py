@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministically render directly loaded views from accepted project records."""
+"""Deterministically render the directly loaded map from formal project data."""
 
 from __future__ import annotations
 
@@ -9,60 +9,140 @@ import tempfile
 from pathlib import Path
 
 
-VIEW_SCHEMA = "ltpm-project-map-view/v1"
-STORE_SCHEMA = "ltpm-record-store/v1"
+VIEW_SCHEMA = "ltpm-project-map-view/v2"
+PROJECT_SCHEMA = "ltpm-project-state/v1"
+TASK_BOARD_SCHEMA = "ltpm-task-board/v1"
+STORE_SCHEMA = "ltpm-record-store/v2"
+SOURCE_SCHEMA = "ltpm-source-registry/v1"
 
 
-def load_store(path: Path) -> dict:
+def load_object(path: Path) -> dict:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
         raise ValueError(f"expected JSON object: {path}")
     return value
 
 
-def build_project_map(store: dict) -> dict:
-    """Build the compact navigation view; do not add facts absent from the store."""
-    if store.get("schema") != STORE_SCHEMA:
-        raise ValueError(f"unsupported record store schema: {store.get('schema')}")
+def load_inputs(skill_root: Path) -> tuple[dict, dict, dict, dict]:
+    return (
+        load_object(skill_root / "state" / "project.json"),
+        load_object(skill_root / "state" / "task-board.json"),
+        load_object(skill_root / "records" / "store.json"),
+        load_object(skill_root / "sources" / "registry.json"),
+    )
+
+
+def build_project_map(project: dict, board: dict, store: dict, sources: dict) -> dict:
+    """Build navigation without treating pending work or an index as authority."""
+    expected_schemas = (
+        (project, PROJECT_SCHEMA),
+        (board, TASK_BOARD_SCHEMA),
+        (store, STORE_SCHEMA),
+        (sources, SOURCE_SCHEMA),
+    )
+    for value, schema in expected_schemas:
+        if value.get("schema") != schema:
+            raise ValueError(f"unsupported schema: expected {schema}, got {value.get('schema')}")
+
+    revision = project.get("revision")
+    if not isinstance(revision, int) or isinstance(revision, bool) or revision < 0:
+        raise ValueError("project revision must be a non-negative integer")
+    for label, value in (("task board", board), ("record store", store), ("source registry", sources)):
+        if value.get("project_revision") != revision:
+            raise ValueError(f"{label} revision does not match project revision")
+
+    contract = project.get("objective_contract")
+    if not isinstance(contract, dict) or not contract.get("objective_id"):
+        raise ValueError("project objective contract is missing a stable objective_id")
     records = store.get("records")
     relations = store.get("relations")
-    if not isinstance(records, list) or not isinstance(relations, list):
-        raise ValueError("record store must contain records and relations lists")
+    registered_sources = sources.get("sources")
+    if not isinstance(records, list) or not isinstance(relations, list) or not isinstance(registered_sources, list):
+        raise ValueError("formal records, relations, and sources must be lists")
 
-    nodes = []
-    priorities: dict[str, list[str]] = {"high": [], "low": []}
-    objective = None
+    record_by_id: dict[str, dict] = {}
+    nodes = [
+        {
+            "id": contract["objective_id"],
+            "type": "objective",
+            "title": contract.get("objective"),
+            "objective_revision": contract.get("objective_revision"),
+            "formal_location": "../state/project.json#objective_contract",
+        }
+    ]
     for record in records:
         if not isinstance(record, dict):
             raise ValueError("every formal record must be an object")
         if record.get("confirmation_status") != "accepted":
             raise ValueError(f"refusing to render unaccepted formal record: {record.get('id')}")
-        content = record.get("content", {})
-        if not isinstance(content, dict):
-            raise ValueError(f"formal record content must be an object: {record.get('id')}")
-        node = {
-            "id": record.get("id"),
-            "type": record.get("kind"),
-            "title": record.get("title"),
-            "status": record.get("status"),
-            "formal_record_id": record.get("id"),
-        }
-        if record.get("kind") == "task":
-            node["task_priority"] = record.get("task_priority")
-            priority = record.get("task_priority")
-            if priority not in priorities:
-                raise ValueError(f"invalid task priority for {record.get('id')}")
-            priorities[priority].append(record.get("id"))
-        if record.get("detail_record_ids"):
-            node["detail_record_ids"] = record["detail_record_ids"]
-        nodes.append(node)
-        if record.get("kind") == "goal" and objective is None:
-            objective = {
-                "record_id": record.get("id"),
+        record_id = record.get("id")
+        if not isinstance(record_id, str) or not record_id or record_id in record_by_id:
+            raise ValueError("formal record IDs must be non-empty and unique")
+        record_by_id[record_id] = record
+        nodes.append(
+            {
+                "id": record_id,
+                "type": record.get("kind"),
                 "title": record.get("title"),
-                "non_goals": content.get("non_goals", []),
-                "completion_criteria": content.get("completion_criteria", []),
+                "confirmation_status": "accepted",
+                "formal_record_id": record_id,
             }
+        )
+
+    task_view: dict[str, list[dict]] = {"high": [], "low": []}
+    board_tasks = board.get("tasks")
+    if not isinstance(board_tasks, dict):
+        raise ValueError("task board tasks must be an object")
+    task_metadata: dict[str, tuple[str, str]] = {}
+    for priority in ("high", "low"):
+        entries = board_tasks.get(priority)
+        if not isinstance(entries, list):
+            raise ValueError(f"task board {priority} must be a list")
+        for entry in entries:
+            if not isinstance(entry, dict):
+                raise ValueError("task board entries must be objects")
+            task_id = entry.get("task_id")
+            if not isinstance(task_id, str) or not task_id:
+                raise ValueError("task board task_id values must be non-empty strings")
+            record = record_by_id.get(task_id)
+            if record is None or record.get("kind") != "task":
+                raise ValueError(f"task board references an unknown task record: {task_id}")
+            if task_id in task_metadata:
+                raise ValueError(f"task appears more than once in task board: {task_id}")
+            status = entry.get("status")
+            task_metadata[task_id] = (priority, status)
+            task_view[priority].append(
+                {
+                    "task_id": task_id,
+                    "title": record.get("title"),
+                    "status": status,
+                    "formal_record_id": task_id,
+                }
+            )
+    for node in nodes:
+        if node["type"] == "task" and node["id"] in task_metadata:
+            node["task_priority"], node["status"] = task_metadata[node["id"]]
+
+    source_nodes = []
+    source_ids: set[str] = set()
+    for source in registered_sources:
+        if not isinstance(source, dict):
+            raise ValueError("every registered source must be an object")
+        if source.get("confirmation_status") != "accepted":
+            raise ValueError(f"refusing to render unaccepted source: {source.get('source_id')}")
+        source_id = source.get("source_id")
+        if not isinstance(source_id, str) or not source_id or source_id in source_ids:
+            raise ValueError("registered source IDs must be non-empty and unique")
+        source_ids.add(source_id)
+        source_nodes.append(
+            {
+                "id": source_id,
+                "type": "source",
+                "source_type": source.get("source_type"),
+                "title": source.get("title"),
+                "formal_location": "../sources/registry.json",
+            }
+        )
 
     for relation in relations:
         if not isinstance(relation, dict):
@@ -72,22 +152,29 @@ def build_project_map(store: dict) -> dict:
 
     return {
         "schema": VIEW_SCHEMA,
-        "project_id": store.get("project_id"),
-        "project_name": store.get("project_name"),
+        "project_id": project.get("project_id"),
+        "project_name": project.get("project_name"),
         "source": {
-            "path": "../records/store.json",
-            "revision": store.get("revision"),
-            "generator": "render_project_views.py/v1",
+            "project_revision": revision,
+            "generator": "render_project_views.py/v2",
+            "inputs": [
+                "../state/project.json",
+                "../state/task-board.json",
+                "../records/store.json",
+                "../sources/registry.json",
+            ],
         },
-        "objective": objective,
-        "current_focus": store.get("current_focus"),
-        "tasks": priorities,
-        "nodes": nodes,
+        "objective_contract": contract,
+        "current_focus": project.get("current_focus"),
+        "tasks": task_view,
+        "nodes": nodes + source_nodes,
         "relations": relations,
         "navigation": {
-            "formal_records": "../records/store.json",
-            "accepted_materials": "../records/materials/",
+            "formal_project_state": "../state/",
+            "formal_records": "../records/",
+            "registered_sources": "../sources/registry.json",
             "pending_work": "../work/",
+            "retrieval_index": "../index/",
             "handoffs": "../packages/",
         },
     }
@@ -112,10 +199,8 @@ def write_atomic(path: Path, text: str) -> None:
 
 
 def render(skill_root: Path) -> dict:
-    store_path = skill_root / "records" / "store.json"
-    output_path = skill_root / "views" / "project-map.json"
-    view = build_project_map(load_store(store_path))
-    write_atomic(output_path, encoded(view))
+    view = build_project_map(*load_inputs(skill_root))
+    write_atomic(skill_root / "views" / "project-map.json", encoded(view))
     return view
 
 
@@ -130,7 +215,7 @@ def main() -> int:
             {
                 "rendered": str(root / "views" / "project-map.json"),
                 "project_id": view["project_id"],
-                "source_revision": view["source"]["revision"],
+                "source_revision": view["source"]["project_revision"],
             },
             ensure_ascii=False,
             indent=2,

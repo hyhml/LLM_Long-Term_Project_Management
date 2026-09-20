@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "framework_version": "0.2.0-dev.1",
+  "framework_version": "0.3.0-dev.1",
   "priority_semantics": {
     "load_priority": ["high", "low"],
     "task_priority": ["high", "low"],
@@ -38,6 +38,26 @@
       "id": "package-transport-boundary",
       "load_priority": "high",
       "rule": "packages/ transports proposals, artifacts, and receipts; package presence or integrity never makes content authoritative."
+    },
+    {
+      "id": "stable-objective-contract",
+      "load_priority": "high",
+      "rule": "A project has one stable objective_id and explicit objective, scope, non-goals, assumptions, evidence standard, and completion standard; objective revisions require itemized acceptance."
+    },
+    {
+      "id": "epistemic-separation",
+      "load_priority": "high",
+      "rule": "Claims, evidence, attempts, reviews, and decisions remain distinct; execution success and integrity checks do not prove a claim."
+    },
+    {
+      "id": "unified-write-transaction",
+      "load_priority": "high",
+      "rule": "Every important management write uses base revision, itemized proposals, user decisions, candidate validation, one revision advance, publication, and a receipt."
+    },
+    {
+      "id": "retrieval-coverage",
+      "load_priority": "high",
+      "rule": "Every retrieval reports searched and unsearched authorized scope and index freshness; an empty result never proves project-wide absence."
     }
   ],
   "capabilities": [
@@ -67,6 +87,20 @@
       "load_priority": "low",
       "trigger": "A .llmpack file must be verified, unpacked, reviewed, or integrated.",
       "reference": "references/integrate.md",
+      "status": "active"
+    },
+    {
+      "id": "formal-commit",
+      "load_priority": "low",
+      "trigger": "Any accepted change is about to be written to project management data.",
+      "reference": "references/commit.md",
+      "status": "active"
+    },
+    {
+      "id": "project-retrieval",
+      "load_priority": "low",
+      "trigger": "The user or task searches project knowledge or builds, refreshes, or evaluates an index.",
+      "reference": "references/retrieval.md",
       "status": "active"
     }
   ],

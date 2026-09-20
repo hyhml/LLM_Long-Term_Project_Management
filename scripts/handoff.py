@@ -127,7 +127,7 @@ def parse_artifact(spec: str) -> tuple[Path, str]:
 
 def export_package(args: argparse.Namespace) -> dict:
     project_skill = args.project_skill.expanduser().resolve()
-    record_store = json.loads((project_skill / "records" / "store.json").read_text(encoding="utf-8"))
+    project_state = json.loads((project_skill / "state" / "project.json").read_text(encoding="utf-8"))
     version = json.loads((project_skill / "framework" / "version.json").read_text(encoding="utf-8"))
     handoff = validate_handoff(json.loads(args.handoff.expanduser().resolve().read_text(encoding="utf-8")))
     handoff_bytes = canonical_json(handoff)
@@ -159,9 +159,9 @@ def export_package(args: argparse.Namespace) -> dict:
         "schema_version": SCHEMA_VERSION,
         "framework_version": version["framework_version"],
         "package_id": f"pkg-{uuid.uuid4()}",
-        "project_id": record_store["project_id"],
+        "project_id": project_state["project_id"],
         "task_id": handoff["task_id"],
-        "base_revision": record_store["revision"],
+        "base_revision": project_state["revision"],
         "created_at": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat(),
         "entries": manifest_entries,
     }
