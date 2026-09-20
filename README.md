@@ -7,9 +7,12 @@
 将仓库克隆或链接到 Codex 的用户 skill 目录，并确保目录名与 skill 名一致：
 
 ```bash
-git clone https://github.com/hyhml/LLM_Long-Term_Project_Management.git \
+git clone --depth 1 --single-branch --branch main \
+  https://github.com/hyhml/LLM_Long-Term_Project_Management.git \
   ~/.agents/skills/long-term-project-manager
 ```
+
+`main` 只包含用户运行所需内容。架构决策记录位于单独的 `development` 分支；上述单分支安装不会下载该分支。只有框架开发者需要切换到 `development`。
 
 重启 Codex 后显式调用：
 
