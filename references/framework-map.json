@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "framework_version": "0.3.0-dev.1",
+  "framework_version": "0.3.0-dev.2",
   "priority_semantics": {
     "load_priority": ["high", "low"],
     "task_priority": ["high", "low"],
@@ -25,9 +25,9 @@
   ],
   "storage_invariants": [
     {
-      "id": "formal-record-authority",
+      "id": "formal-data-authority",
       "load_priority": "high",
-      "rule": "Accepted records and typed relations under records/ are authoritative; views are deterministic derived navigation and must not be edited as project state."
+      "rule": "Accepted state/, records/, and sources/ are authoritative; views/ and index/ are rebuildable derivatives and must not be edited as project authority."
     },
     {
       "id": "pending-work-separation",
@@ -58,6 +58,18 @@
       "id": "retrieval-coverage",
       "load_priority": "high",
       "rule": "Every retrieval reports searched and unsearched authorized scope and index freshness; an empty result never proves project-wide absence."
+    }
+  ],
+  "governance_invariants": [
+    {
+      "id": "two-axis-change-classification",
+      "load_priority": "high",
+      "rule": "Before substantive work, disclose change layer (project-data, framework, mixed, or none/read-only), audience (runtime-user, developer, or both), and write/release boundary; classify by the authority changed and split mixed work."
+    },
+    {
+      "id": "classification-boundary-preservation",
+      "load_priority": "high",
+      "rule": "Framework changes never silently mutate accepted project data, project-data changes never modify framework rules, and developer-only artifacts are never represented as distributed runtime behavior."
     }
   ],
   "capabilities": [
@@ -101,6 +113,13 @@
       "load_priority": "low",
       "trigger": "The user or task searches project knowledge or builds, refreshes, or evaluates an index.",
       "reference": "references/retrieval.md",
+      "status": "active"
+    },
+    {
+      "id": "change-classification",
+      "load_priority": "low",
+      "trigger": "A change is mixed, ambiguous, crosses project/framework authority, or affects runtime and developer audiences differently.",
+      "reference": "references/change-classification.md",
       "status": "active"
     }
   ],
