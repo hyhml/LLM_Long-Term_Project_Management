@@ -12,6 +12,7 @@ import sys
 import uuid
 from pathlib import Path
 
+from project_binding import inspect_project, make_instance
 from render_project_views import render as render_project_views
 
 
@@ -81,7 +82,6 @@ def main() -> int:
         "DEFAULT_PROMPT_JSON": json.dumps(
             f"Use ${args.skill_name} to continue this managed project.", ensure_ascii=False
         ),
-        "FRAMEWORK_VERSION": framework_version,
         "GENERATED_AT": generated_at,
         "PROJECT_ID": project_id,
     }
@@ -94,13 +94,9 @@ def main() -> int:
             replacements,
         )
         render(
-            template_root / "framework" / "version.json.tmpl",
-            skill_root / "framework" / "version.json",
+            template_root / "project-instructions.md.tmpl",
+            skill_root / "project-instructions.md",
             replacements,
-        )
-        shutil.copytree(
-            template_root / "framework" / "conditional",
-            skill_root / "framework" / "conditional",
         )
 
         records = []
@@ -205,6 +201,10 @@ def main() -> int:
         write_json(skill_root / "records" / "store.json", record_store)
         write_json(skill_root / "sources" / "registry.json", source_registry)
         write_json(skill_root / "index" / "manifest.json", index_manifest)
+        write_json(
+            skill_root / "framework" / "instance.json",
+            make_instance(skill_root, project_id, args.skill_name, framework_version, generated_at),
+        )
         for relative in (
             "records/materials",
             "work/explorations",
@@ -222,7 +222,21 @@ def main() -> int:
             shutil.rmtree(skill_root)
         raise
 
-    print(json.dumps({"created": str(skill_root), "project_id": project_id, "revision": 0}, indent=2))
+    binding = inspect_project(skill_root)
+    if binding["status"] != "compatible":
+        raise SystemExit(f"generated child is not compatible: {'; '.join(binding['issues'])}")
+    print(
+        json.dumps(
+            {
+                "created": str(skill_root),
+                "project_id": project_id,
+                "revision": 0,
+                "binding_status": binding["status"],
+                "entry_protocol": binding["entry_protocol"],
+            },
+            indent=2,
+        )
+    )
     return 0
 
 

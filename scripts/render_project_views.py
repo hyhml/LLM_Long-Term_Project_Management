@@ -6,8 +6,10 @@ from __future__ import annotations
 import argparse
 import json
 import tempfile
+import sys
 from pathlib import Path
 
+from project_binding import require_binding
 
 VIEW_SCHEMA = "ltpm-project-map-view/v3"
 PROJECT_SCHEMA = "ltpm-project-state/v2"
@@ -209,12 +211,18 @@ def main() -> int:
     parser.add_argument("skill_root", type=Path)
     args = parser.parse_args()
     root = args.skill_root.expanduser().resolve()
-    view = render(root)
+    try:
+        binding = require_binding(root, write=True, allow_missing_derived=True)
+        view = render(root)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False, indent=2), file=sys.stderr)
+        return 1
     print(
         json.dumps(
             {
                 "rendered": str(root / "views" / "project-map.json"),
                 "project_id": view["project_id"],
+                "binding_status": binding["status"],
                 "source_revision": view["source"]["project_revision"],
             },
             ensure_ascii=False,

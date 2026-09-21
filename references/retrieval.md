@@ -12,6 +12,7 @@ python scripts/search_project.py \
 
 Every search response must state:
 
+- the bound project ID and binding status;
 - project revision and index revision/status;
 - the records, sources, paths, or collections actually searched;
 - authorized material that was not searched;

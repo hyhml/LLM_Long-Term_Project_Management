@@ -21,9 +21,9 @@ Run from the repository root:
 
 ```bash
 python3 development/release/build_runtime.py \
-  --release-version 0.4.0 \
+  --release-version 0.5.0 \
   --output-dir /new/runtime/directory \
-  --archive /new/long-term-project-manager-v0.4.0.zip
+  --archive /new/long-term-project-manager-v0.5.0.zip
 ```
 
 Both output targets must be absent. The builder audits source classification before creating either target, copies exact runtime files, injects the stable version only into the copied framework map, verifies the output set, and creates a deterministic ZIP when requested.

@@ -3,7 +3,7 @@
 This is developer-only policy. It governs the framework test suite and the boundary to separately authorized regression or evaluation data. It does not authorize collecting real user or project cases.
 
 - Policy contract: `ltpm-regression-testing-policy/v1`
-- Core invariant contract: `ltpm-core-invariants/v1`
+- Core invariant contract: `ltpm-core-invariants/v2`
 
 ## Start with necessity
 
@@ -17,6 +17,7 @@ The core suite protects:
 4. **Project identity continuity:** objective identity cannot be replaced silently; an accepted revision or a separate project is required.
 5. **Rebuildability:** generated views and disposable indexes can be reproduced from their declared authority and manual edits are detected.
 6. **Information boundary:** retrieval reports coverage; integrity is not presented as truth or authenticity; privacy, audience, and release claims match actual distribution.
+7. **Multi-project isolation:** each operation binds one project root and identity; project search, packages, conversations, upgrades, and explicit coordination cannot silently cross that boundary.
 
 The executable core suite mirrors those contracts directly:
 
@@ -26,10 +27,11 @@ The executable core suite mirrors those contracts directly:
 - `tests/test_invariant_04_project_identity.py`
 - `tests/test_invariant_05_rebuildability.py`
 - `tests/test_invariant_06_information_boundaries.py`
+- `tests/test_invariant_07_multi_project_isolation.py`
 
 `tests/support.py` creates only synthetic projects and temporary inputs. A test that needs a real incident, retrieval corpus, or gold answer belongs to an external, separately authorized dataset run rather than this core suite.
 
-`tests/test_release_bundle.py` is a feature-contract suite for ADR-0011. It is developer-only and verifies the runtime distribution boundary without becoming part of the six invariant modules or the user bundle.
+`tests/test_release_bundle.py` is a feature-contract suite for ADR-0011. It is developer-only and verifies the runtime distribution boundary without becoming part of the seven invariant modules or the user bundle.
 
 Feature-specific tests are justified when a feature adds another durable contract. Do not write tests that merely freeze wording, function layout, incidental JSON ordering, or another replaceable implementation detail unless that detail is itself a published contract.
 

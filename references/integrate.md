@@ -6,12 +6,14 @@ Never execute imported code during unpacking or review.
 
 ```bash
 python scripts/handoff.py verify /absolute/path/task.llmpack
+python scripts/handoff.py check-destination /absolute/path/task.llmpack \
+  --project-skill /absolute/project/.agents/skills/example-project
 python scripts/handoff.py unpack /absolute/path/task.llmpack --output-dir /new/empty/directory
 ```
 
 The unpacker verifies safe relative paths, the exact manifest member set, sizes, and SHA-256 hashes before writing output.
 
-Check that `project_id` matches. Compare `base_revision` with `state/project.json` revision. Version mismatch or a stale base revision is a conflict: continue reviewing, but do not commit any item as an automatic merge.
+`check-destination` enforces the project ID boundary and reports whether the base revision and compatible write binding permit a normal integration. A project mismatch fails. A stale revision or legacy/incompatible child may still be reviewed read-only, but no item may be committed as an automatic merge.
 
 ## Proposal phase
 

@@ -20,7 +20,7 @@ class RuntimeReleaseBundleTest(ProjectTestCase):
             "--source-root",
             source,
             "--release-version",
-            "0.4.0",
+            "0.5.0",
             "--output-dir",
             output,
         ]
@@ -49,10 +49,10 @@ class RuntimeReleaseBundleTest(ProjectTestCase):
         }
         self.assertEqual(produced, set(allowlist))
         self.assertEqual(report["file_count"], len(allowlist))
-        self.assertEqual(report["release_version"], "0.4.0")
-        self.assertEqual(read_json(runtime / "references" / "framework-map.json")["framework_version"], "0.4.0")
+        self.assertEqual(report["release_version"], "0.5.0")
+        self.assertEqual(read_json(runtime / "references" / "framework-map.json")["framework_version"], "0.5.0")
         self.assertNotEqual(
-            read_json(ROOT / "references" / "framework-map.json")["framework_version"], "0.4.0"
+            read_json(ROOT / "references" / "framework-map.json")["framework_version"], "0.5.0"
         )
         for excluded in ("AGENTS.md", "development", "tests", "private"):
             self.assertFalse((runtime / excluded).exists())
@@ -85,7 +85,10 @@ class RuntimeReleaseBundleTest(ProjectTestCase):
         child = Path(created["created"])
         validation = json.loads(run(runtime / "scripts" / "validate_project.py", child).stdout)
         self.assertTrue(validation["valid"])
-        self.assertEqual(read_json(child / "framework" / "version.json")["framework_version"], "0.4.0")
+        instance = read_json(child / "framework" / "instance.json")
+        self.assertEqual(instance["last_adapter_update_with"], "0.5.0")
+        self.assertFalse((child / "framework" / "conditional").exists())
+        self.assertTrue((child / "project-instructions.md").is_file())
 
     def test_unclassified_or_missing_source_file_blocks_release(self) -> None:
         source = self.copy_source("source-unclassified")

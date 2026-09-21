@@ -5,7 +5,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
+
+from project_binding import require_binding
 
 
 def text(value: object) -> str:
@@ -20,6 +23,7 @@ def load(path: Path) -> dict:
 
 
 def search(skill_root: Path, query: str) -> dict:
+    binding = require_binding(skill_root, write=False)
     project = load(skill_root / "state" / "project.json")
     store = load(skill_root / "records" / "store.json")
     registry = load(skill_root / "sources" / "registry.json")
@@ -68,6 +72,7 @@ def search(skill_root: Path, query: str) -> dict:
         "query": query,
         "project_id": project.get("project_id"),
         "project_revision": project.get("revision"),
+        "binding_status": binding["status"],
         "results": results,
         "coverage": {
             "index_status": manifest.get("status"),
@@ -84,8 +89,12 @@ def main() -> int:
     parser.add_argument("--project-skill", required=True, type=Path)
     parser.add_argument("--query", required=True)
     args = parser.parse_args()
-    result = search(args.project_skill.expanduser().resolve(), args.query)
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    try:
+        result = search(args.project_skill.expanduser().resolve(), args.query)
+    except (OSError, ValueError, json.JSONDecodeError) as exc:
+        print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False, indent=2), file=sys.stderr)
+        return 1
+    print(json.dumps({"ok": True, **result}, ensure_ascii=False, indent=2))
     return 0
 
 

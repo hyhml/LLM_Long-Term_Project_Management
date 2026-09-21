@@ -12,8 +12,11 @@ class AuthorityBoundaryTest(ProjectTestCase):
         validated = json.loads(run(ROOT / "scripts" / "validate_project.py", self.skill).stdout)
         self.assertTrue(validated["valid"])
         framework_map = read_json(ROOT / "references" / "framework-map.json")
-        framework_version = read_json(self.skill / "framework" / "version.json")
-        self.assertEqual(framework_version["framework_version"], framework_map["framework_version"])
+        instance = read_json(self.skill / "framework" / "instance.json")
+        self.assertEqual(instance["last_adapter_update_with"], framework_map["framework_version"])
+        self.assertEqual(instance["schema"], "ltpm-project-instance/v1")
+        self.assertTrue((self.skill / "project-instructions.md").is_file())
+        self.assertFalse((self.skill / "framework" / "conditional").exists())
 
         for relative in ("state", "records", "sources", "work", "views", "index", "packages"):
             self.assertTrue((self.skill / relative).is_dir())

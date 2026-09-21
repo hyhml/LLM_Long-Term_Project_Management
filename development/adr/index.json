@@ -111,6 +111,21 @@
       "path": "development/adr/0012-developer-product-map.md",
       "topics": ["product-intent", "requirements", "development-map", "traceability", "coverage"],
       "runtime_effect": "none-development-governance-only"
+    },
+    {
+      "id": "ADR-0013",
+      "title": "Project-bound child skills and explicit conversation isolation",
+      "status": "accepted",
+      "path": "development/adr/0013-project-bound-child-isolation.md",
+      "topics": [
+        "project-isolation",
+        "child-skill",
+        "project-identity",
+        "conversation-binding",
+        "cross-project-coordination",
+        "framework-update"
+      ],
+      "runtime_effect": "implemented-in-0.5.0-rc.1"
     }
   ]
 }

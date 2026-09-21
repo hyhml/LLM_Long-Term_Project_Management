@@ -15,6 +15,7 @@ import uuid
 import zipfile
 from pathlib import Path, PurePosixPath
 
+from project_binding import require_binding
 
 FORMAT = "llm-long-term-project-handoff"
 SCHEMA_VERSION = 1
@@ -127,8 +128,8 @@ def parse_artifact(spec: str) -> tuple[Path, str]:
 
 def export_package(args: argparse.Namespace) -> dict:
     project_skill = args.project_skill.expanduser().resolve()
+    binding = require_binding(project_skill, write=True)
     project_state = json.loads((project_skill / "state" / "project.json").read_text(encoding="utf-8"))
-    version = json.loads((project_skill / "framework" / "version.json").read_text(encoding="utf-8"))
     handoff = validate_handoff(json.loads(args.handoff.expanduser().resolve().read_text(encoding="utf-8")))
     handoff_bytes = canonical_json(handoff)
 
@@ -157,7 +158,8 @@ def export_package(args: argparse.Namespace) -> dict:
     manifest = {
         "format": FORMAT,
         "schema_version": SCHEMA_VERSION,
-        "framework_version": version["framework_version"],
+        "framework_version": binding["manager_framework_version"],
+        "entry_protocol": binding["entry_protocol"],
         "package_id": f"pkg-{uuid.uuid4()}",
         "project_id": project_state["project_id"],
         "task_id": handoff["task_id"],
@@ -266,6 +268,27 @@ def verify_package(path: Path) -> dict:
     return {**manifest, "path": str(path), "package_sha256": sha256_file(path), "verified": True}
 
 
+def check_destination(path: Path, project_skill: Path) -> dict:
+    manifest, _ = read_verified(path)
+    binding = require_binding(project_skill, write=False)
+    if manifest.get("project_id") != binding["project_id"]:
+        raise PackageError(
+            f"package project_id {manifest.get('project_id')} does not match destination {binding['project_id']}"
+        )
+    revision_match = manifest.get("base_revision") == binding["project_revision"]
+    return {
+        "package_id": manifest.get("package_id"),
+        "project_id": binding["project_id"],
+        "destination": str(project_skill),
+        "binding_status": binding["status"],
+        "base_revision": manifest.get("base_revision"),
+        "destination_revision": binding["project_revision"],
+        "revision_match": revision_match,
+        "formal_commit_allowed": revision_match and binding["write_allowed"],
+        "verified": True,
+    }
+
+
 def unpack_package(path: Path, destination: Path) -> dict:
     manifest, payload = read_verified(path)
     if destination.exists():
@@ -296,6 +319,9 @@ def parse_args() -> argparse.Namespace:
     unpack_parser = subparsers.add_parser("unpack")
     unpack_parser.add_argument("package", type=Path)
     unpack_parser.add_argument("--output-dir", type=Path, required=True)
+    destination_parser = subparsers.add_parser("check-destination")
+    destination_parser.add_argument("package", type=Path)
+    destination_parser.add_argument("--project-skill", type=Path, required=True)
     return parser.parse_args()
 
 
@@ -306,8 +332,12 @@ def main() -> int:
             result = export_package(args)
         elif args.command == "verify":
             result = verify_package(args.package.expanduser().resolve())
-        else:
+        elif args.command == "unpack":
             result = unpack_package(args.package.expanduser().resolve(), args.output_dir.expanduser().resolve())
+        else:
+            result = check_destination(
+                args.package.expanduser().resolve(), args.project_skill.expanduser().resolve()
+            )
     except (OSError, KeyError, ValueError, json.JSONDecodeError, zipfile.BadZipFile) as exc:
         print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False, indent=2), file=sys.stderr)
         return 1
