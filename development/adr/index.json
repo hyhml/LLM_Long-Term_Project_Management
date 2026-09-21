@@ -103,6 +103,14 @@
       "path": "development/adr/0011-whitelist-runtime-release.md",
       "topics": ["release", "distribution", "allowlist", "runtime", "developer-harness"],
       "runtime_effect": "implemented-in-0.4.0-rc.1"
+    },
+    {
+      "id": "ADR-0012",
+      "title": "Developer product requirements map",
+      "status": "accepted",
+      "path": "development/adr/0012-developer-product-map.md",
+      "topics": ["product-intent", "requirements", "development-map", "traceability", "coverage"],
+      "runtime_effect": "none-development-governance-only"
     }
   ]
 }
