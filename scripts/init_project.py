@@ -50,6 +50,25 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def discovery_result(project_root: Path, skill_name: str) -> dict[str, str]:
+    current = Path.cwd().resolve()
+    upward_scope = [current]
+    if not (current / ".git").exists():
+        for parent in current.parents:
+            upward_scope.append(parent)
+            if (parent / ".git").exists():
+                break
+        else:
+            upward_scope = [current]
+    status = "current-scope" if project_root in upward_scope else "new-project-root-session-required"
+    return {
+        "status": status,
+        "current_working_directory": str(current),
+        "launch_directory": str(project_root),
+        "invocation": f"${skill_name}",
+    }
+
+
 def main() -> int:
     args = parse_args()
     root = args.project_root.expanduser().resolve()
@@ -233,6 +252,7 @@ def main() -> int:
                 "revision": 0,
                 "binding_status": binding["status"],
                 "entry_protocol": binding["entry_protocol"],
+                "discovery": discovery_result(root, args.skill_name),
             },
             indent=2,
         )

@@ -34,6 +34,12 @@ SUPPORT_FILES = (
     "views/project-map.json",
     "index/manifest.json",
 )
+CANDIDATE_FILES = AUTHORITATIVE_FILES + (
+    "views/project-map.json",
+    "index/manifest.json",
+)
+CLEANUP_PREVIEW_SCHEMA = "ltpm-transaction-cleanup-preview/v1"
+CLEANUP_RECEIPT_SCHEMA = "ltpm-transaction-cleanup-receipt/v1"
 
 
 class TransactionError(ValueError):
@@ -71,6 +77,28 @@ def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def canonical(value: object) -> bytes:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def tree_sha256(root: Path) -> str:
+    digest = hashlib.sha256()
+    for path in sorted(root.rglob("*")):
+        if path.is_symlink():
+            raise TransactionError(f"candidate cleanup refuses symlink: {path.relative_to(root)}")
+        if path.is_dir():
+            continue
+        if not path.is_file():
+            raise TransactionError(f"candidate cleanup refuses non-file entry: {path.relative_to(root)}")
+        relative = path.relative_to(root).as_posix().encode("utf-8")
+        digest.update(len(relative).to_bytes(8, "big"))
+        digest.update(relative)
+        data = path.read_bytes()
+        digest.update(len(data).to_bytes(8, "big"))
+        digest.update(data)
+    return digest.hexdigest()
+
+
 def transaction_root(skill_root: Path, operation_id: str) -> Path:
     if not OPERATION_RE.fullmatch(operation_id) or len(operation_id) > 80:
         raise TransactionError("operation ID must be <=80 lowercase letters, digits, and single hyphens")
@@ -86,7 +114,7 @@ def prepare(skill_root: Path, operation_id: str) -> dict:
     if root.exists():
         raise TransactionError(f"transaction already exists: {root}")
     candidate = root / "candidate"
-    for relative in AUTHORITATIVE_FILES + SUPPORT_FILES:
+    for relative in CANDIDATE_FILES:
         source = skill_root / relative
         destination = candidate / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -107,6 +135,132 @@ def prepare(skill_root: Path, operation_id: str) -> dict:
         "candidate": str(candidate),
         "project_id": binding["project_id"],
         "base_revision": project["revision"],
+    }
+
+
+def validate_candidate(skill_root: Path, candidate: Path) -> list[str]:
+    with tempfile.TemporaryDirectory(prefix="ltpm-transaction-validation-") as temporary_text:
+        validation_root = Path(temporary_text) / "candidate"
+        for relative in CANDIDATE_FILES:
+            source = candidate / relative
+            destination = validation_root / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
+        for relative in SUPPORT_FILES:
+            if relative in CANDIDATE_FILES:
+                continue
+            source = skill_root / relative
+            destination = validation_root / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
+        return validate_project(validation_root)
+
+
+def cleanup_preview(skill_root: Path) -> dict:
+    binding = require_binding(skill_root, write=True)
+    project = read_json(skill_root / "state" / "project.json")
+    transactions = skill_root / "work" / "transactions"
+    eligible: list[dict] = []
+    excluded: list[dict] = []
+    for root in sorted(transactions.iterdir() if transactions.is_dir() else [], key=lambda path: path.name):
+        if root.is_symlink() or not root.is_dir() or not OPERATION_RE.fullmatch(root.name):
+            excluded.append({"operation_id": root.name, "reason": "unsafe-or-invalid-transaction-root"})
+            continue
+        candidate = root / "candidate"
+        if not candidate.exists():
+            continue
+        reason: str | None = None
+        try:
+            plan = read_json(root / "plan.json")
+            expected_receipt = Path("packages") / "archive" / "receipts" / f"{root.name}.json"
+            if candidate.is_symlink() or not candidate.is_dir():
+                reason = "candidate-is-not-a-regular-directory"
+            elif plan.get("operation_id") != root.name or plan.get("project_id") != project.get("project_id"):
+                reason = "plan-identity-mismatch"
+            elif plan.get("status") != "committed":
+                reason = "transaction-is-not-committed"
+            elif plan.get("receipt") != expected_receipt.as_posix():
+                reason = "plan-receipt-path-mismatch"
+            else:
+                receipt = read_json(skill_root / expected_receipt)
+                if (
+                    receipt.get("schema") != "ltpm-transaction-receipt/v1"
+                    or receipt.get("operation_id") != root.name
+                    or receipt.get("project_id") != project.get("project_id")
+                    or receipt.get("base_revision") != plan.get("base_revision")
+                    or receipt.get("new_revision") != plan.get("new_revision")
+                    or receipt.get("validation") != "passed"
+                ):
+                    reason = "receipt-does-not-prove-committed-candidate"
+            if reason is None:
+                eligible.append(
+                    {
+                        "operation_id": root.name,
+                        "candidate": candidate.relative_to(skill_root).as_posix(),
+                        "candidate_tree_sha256": tree_sha256(candidate),
+                        "receipt": expected_receipt.as_posix(),
+                    }
+                )
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            reason = f"invalid-transaction-evidence: {exc}"
+        if reason is not None:
+            excluded.append({"operation_id": root.name, "reason": reason})
+    preview = {
+        "schema": CLEANUP_PREVIEW_SCHEMA,
+        "project_id": binding["project_id"],
+        "project_revision": project["revision"],
+        "eligible": eligible,
+        "excluded": excluded,
+    }
+    preview["preview_sha256"] = sha256(canonical(preview))
+    return preview
+
+
+def cleanup_committed(skill_root: Path, approved_preview_sha256: str) -> dict:
+    preview = cleanup_preview(skill_root)
+    if preview["preview_sha256"] != approved_preview_sha256:
+        raise TransactionError("approved cleanup preview does not match current cleanup scope")
+    if not preview["eligible"]:
+        raise TransactionError("cleanup preview contains no eligible committed candidates")
+    receipt_path = (
+        skill_root
+        / "packages"
+        / "archive"
+        / "receipts"
+        / f"candidate-cleanup-{approved_preview_sha256[:12]}.json"
+    )
+    if receipt_path.exists():
+        raise TransactionError(f"cleanup receipt already exists: {receipt_path}")
+    cleaned: list[str] = []
+    failed: list[dict[str, str]] = []
+    for item in preview["eligible"]:
+        candidate = skill_root / item["candidate"]
+        try:
+            shutil.rmtree(candidate)
+            cleaned.append(item["operation_id"])
+        except OSError as exc:
+            failed.append({"operation_id": item["operation_id"], "error": str(exc)})
+            break
+    receipt = {
+        "schema": CLEANUP_RECEIPT_SCHEMA,
+        "project_id": preview["project_id"],
+        "project_revision_before": preview["project_revision"],
+        "project_revision_after": read_json(skill_root / "state" / "project.json")["revision"],
+        "preview_sha256": approved_preview_sha256,
+        "cleaned_operations": cleaned,
+        "failed": failed,
+        "created_at": now(),
+        "validation": "passed" if not failed else "partial",
+    }
+    write_atomic(receipt_path, encoded(receipt))
+    if failed:
+        raise TransactionError(f"candidate cleanup was partial; see receipt: {receipt_path}")
+    return {
+        "cleanup": "completed",
+        "project_id": preview["project_id"],
+        "project_revision": preview["project_revision"],
+        "cleaned_operations": cleaned,
+        "receipt": str(receipt_path),
     }
 
 
@@ -202,7 +356,7 @@ def commit(skill_root: Path, operation_id: str, decisions_path: Path) -> dict:
     objective_change_is_authorized(live_project, candidate_project, decisions)
 
     render_project_views(candidate)
-    candidate_errors = validate_project(candidate)
+    candidate_errors = validate_candidate(skill_root, candidate)
     if candidate_errors:
         raise TransactionError(f"candidate is invalid: {'; '.join(candidate_errors)}")
 
@@ -215,7 +369,7 @@ def commit(skill_root: Path, operation_id: str, decisions_path: Path) -> dict:
         write_atomic(candidate / relative, encoded(value))
     write_atomic(candidate / "index" / "manifest.json", encoded(empty_index(live_project["project_id"], next_revision)))
     render_project_views(candidate)
-    candidate_errors = validate_project(candidate)
+    candidate_errors = validate_candidate(skill_root, candidate)
     if candidate_errors:
         raise TransactionError(f"revisioned candidate is invalid: {'; '.join(candidate_errors)}")
 
@@ -253,12 +407,18 @@ def commit(skill_root: Path, operation_id: str, decisions_path: Path) -> dict:
     plan["new_revision"] = next_revision
     plan["receipt"] = str(receipt_path.relative_to(skill_root))
     write_atomic(root / "plan.json", encoded(plan))
+    try:
+        shutil.rmtree(candidate)
+        candidate_cleanup = "removed"
+    except OSError:
+        candidate_cleanup = "retained-nondiscoverable"
     return {
         "committed": operation_id,
         "project_id": binding["project_id"],
         "old_revision": base_revision,
         "new_revision": next_revision,
         "receipt": str(receipt_path),
+        "candidate_cleanup": candidate_cleanup,
     }
 
 
@@ -272,6 +432,11 @@ def parse_args() -> argparse.Namespace:
     commit_parser.add_argument("--project-skill", required=True, type=Path)
     commit_parser.add_argument("--operation-id", required=True)
     commit_parser.add_argument("--decisions", required=True, type=Path)
+    cleanup_preview_parser = subparsers.add_parser("cleanup-preview")
+    cleanup_preview_parser.add_argument("--project-skill", required=True, type=Path)
+    cleanup_parser = subparsers.add_parser("cleanup-committed")
+    cleanup_parser.add_argument("--project-skill", required=True, type=Path)
+    cleanup_parser.add_argument("--approved-preview-sha256", required=True)
     return parser.parse_args()
 
 
@@ -281,8 +446,12 @@ def main() -> int:
         skill_root = args.project_skill.expanduser().resolve()
         if args.command == "prepare":
             result = prepare(skill_root, args.operation_id)
-        else:
+        elif args.command == "commit":
             result = commit(skill_root, args.operation_id, args.decisions.expanduser().resolve())
+        elif args.command == "cleanup-preview":
+            result = cleanup_preview(skill_root)
+        else:
+            result = cleanup_committed(skill_root, args.approved_preview_sha256)
     except (OSError, KeyError, ValueError, json.JSONDecodeError) as exc:
         print(json.dumps({"ok": False, "error": str(exc)}, ensure_ascii=False, indent=2), file=sys.stderr)
         return 1
