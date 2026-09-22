@@ -1,0 +1,41 @@
+{
+  "schema": "ltpm-runtime-release-receipt/v1",
+  "release_version": "0.5.0",
+  "released_at": "2026-09-22T06:25:37Z",
+  "source": {
+    "branch": "development",
+    "revision": "a116ead45bbae81c05fc73be830e9c48b24ed4a6",
+    "framework_version": "0.5.0-rc.1"
+  },
+  "runtime": {
+    "branch": "main",
+    "commit": "7c72925bfe8876bd31a7cfb7d25d215284a1ef03",
+    "tag": "v0.5.0",
+    "file_count": 30,
+    "total_bytes": 156553,
+    "tree_sha256": "72aaae026e0bae635cd4702af259ba55ea5a68c403758fb8d81de8a3b5f935f5"
+  },
+  "archive": {
+    "name": "long-term-project-manager-v0.5.0.zip",
+    "size": 55228,
+    "sha256": "6f1f9dab3ab341faa09ddf51953d5838ba2e4c4d74c6df095975531c9638608b",
+    "url": "https://github.com/hyhml/LLM_Long-Term_Project_Management/releases/download/v0.5.0/long-term-project-manager-v0.5.0.zip"
+  },
+  "validation": {
+    "developer_tests": "31 passed",
+    "development_skill": "passed",
+    "runtime_skill": "passed",
+    "generated_child_projects": "2 passed",
+    "cross_project_isolation_smoke": "passed",
+    "remote_archive_digest": "matched"
+  },
+  "excluded_from_runtime": [
+    "AGENTS.md",
+    "development/",
+    "tests/",
+    "private/",
+    "__pycache__/",
+    "*.pyc"
+  ],
+  "release_url": "https://github.com/hyhml/LLM_Long-Term_Project_Management/releases/tag/v0.5.0"
+}

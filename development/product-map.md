@@ -2,7 +2,7 @@
 
 - Scope: development-only product intent and coverage map
 - Authority: user-confirmed requirements, organized for framework development
-- Updated: 2026-09-21
+- Updated: 2026-09-22
 - Runtime distribution: excluded from `main` and user release archives
 
 ## How to use this map
@@ -179,7 +179,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `QUAL-001` | high | Protect the original six core invariants: cross-conversation loop, authority boundary, decision/revision transaction, project identity, rebuildability, and information boundary. | implemented | 23 original core tests remain passing. |
 | `QUAL-002` | high | Add regression tests only for reusable defects under an itemized proposal; keep real cases and gold data external. | implemented | ADR-0010 and regression policy. |
 | `QUAL-003` | high | Keep developer tests, ADRs, policies, and release tooling out of user distributions. | implemented | Exact runtime allowlist and release tests. |
-| `QUAL-004` | high | Build `main` and release archives from a whitelist, fail on unclassified files, and validate the generated runtime and child skill. | implemented | ADR-0011, deterministic builder, release tests, and `v0.4.0` receipt. |
+| `QUAL-004` | high | Build `main` and release archives from a whitelist, fail on unclassified files, and validate the generated runtime and child skill. | implemented | ADR-0011, deterministic builder, release tests, and `v0.4.0`/`v0.5.0` receipts. |
 | `QUAL-005` | high | Do not store project data, real regression/evaluation data, secrets, or unrelated private paths in framework releases. | implemented | Release allowlist, private ignore, and policies. |
 | `QUAL-006` | low | Domain-specific educational safety and adversarial test suites. | out-of-scope | May belong to a future educational child skill, not the generic framework core. |
 | `QUAL-007` | high | Add a multi-project isolation invariant group covering root/identity mismatch, retrieval and package boundaries, framework-update preservation, conversation switching, and explicit coordination. | implemented | Five synthetic tests cover separate search, explicit coordination, mismatch/ambiguity, session switch, handoff rejection, upgrade preservation, and rollback. |
@@ -245,7 +245,7 @@ The following gaps must remain visible in every framework planning session:
 3. **Parallel exploration (`FLOW-007`)**: high priority but intentionally deferred; stale transactions are rejected, while parallel rebase/merge is not implemented.
 4. **Machine-profile first-run orchestration (`ENV-003`)**: the tool exists, but the end-to-end user interaction needs more validation.
 
-Release isolation is no longer an open gap: `QUAL-003` and `QUAL-004` were completed by `v0.4.0`.
+Release isolation is no longer an open gap: `QUAL-003` and `QUAL-004` were completed by `v0.4.0` and reused successfully for the stable `v0.5.0` release.
 
 ## 7. Open design questions requiring user discussion
 
