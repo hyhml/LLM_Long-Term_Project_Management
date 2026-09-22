@@ -141,6 +141,22 @@
         "resolution-receipt"
       ],
       "runtime_effect": "implemented-in-0.6.0-dev.1"
+    },
+    {
+      "id": "ADR-0015",
+      "title": "Concise, purpose-bound consent for discovery and package creation",
+      "status": "accepted",
+      "path": "development/adr/0015-concise-purpose-bound-consent.md",
+      "topics": [
+        "consent",
+        "environment-discovery",
+        "handoff-preview",
+        "feedback-preview",
+        "package-creation",
+        "priority-semantics",
+        "compatibility"
+      ],
+      "runtime_effect": "none-until-implemented-in-0.6.1"
     }
   ]
 }
