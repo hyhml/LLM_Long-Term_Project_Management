@@ -9,13 +9,15 @@ import re
 import sys
 from pathlib import Path
 
+from project_binding import CURRENT_DATA_SCHEMAS, INSTANCE_SCHEMA, MANAGER_SKILL, managed_hashes
 from render_project_views import build_project_map, load_inputs, load_object
 
 
 REQUIRED = (
     "SKILL.md",
     "agents/openai.yaml",
-    "framework/version.json",
+    "project-instructions.md",
+    "framework/instance.json",
     "state/project.json",
     "state/task-board.json",
     "records/store.json",
@@ -127,9 +129,16 @@ def validate_task_contract(value: object) -> list[str]:
     return errors
 
 
-def validate(root: Path) -> list[str]:
+def validate(
+    root: Path,
+    allow_legacy: bool = False,
+    allow_managed_mismatch: bool = False,
+) -> list[str]:
     errors: list[str] = []
-    for relative in REQUIRED:
+    legacy = allow_legacy and not (root / "framework" / "instance.json").is_file() and (root / "framework" / "version.json").is_file()
+    required = tuple(relative for relative in REQUIRED if relative not in {"project-instructions.md", "framework/instance.json"})
+    required += ("framework/version.json",) if legacy else ("project-instructions.md", "framework/instance.json")
+    for relative in required:
         if not (root / relative).is_file():
             errors.append(f"missing required file: {relative}")
     if errors:
@@ -146,7 +155,7 @@ def validate(root: Path) -> list[str]:
         project, board, store, sources = load_inputs(root)
         view = load_object(root / "views" / "project-map.json")
         index = load_object(root / "index" / "manifest.json")
-        version = load_object(root / "framework" / "version.json")
+        adapter = load_object(root / "framework" / ("version.json" if legacy else "instance.json"))
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         errors.append(str(exc))
         return errors
@@ -157,9 +166,36 @@ def validate(root: Path) -> list[str]:
             errors.append(f"unsupported {name} schema")
 
     project_id = project.get("project_id")
-    project_ids = [board.get("project_id"), store.get("project_id"), sources.get("project_id"), view.get("project_id"), index.get("project_id"), version.get("project_id")]
+    project_ids = [board.get("project_id"), store.get("project_id"), sources.get("project_id"), view.get("project_id"), index.get("project_id"), adapter.get("project_id")]
     if not isinstance(project_id, str) or not project_id or any(value != project_id for value in project_ids):
         errors.append("project_id is missing or inconsistent")
+    if not legacy:
+        if adapter.get("schema") != INSTANCE_SCHEMA:
+            errors.append("unsupported project instance schema")
+        if adapter.get("manager_skill") != MANAGER_SKILL:
+            errors.append("project instance has an unsupported manager_skill")
+        match = re.search(r"^name: ([a-z0-9]+(?:-[a-z0-9]+)*)$", skill_text, re.MULTILINE)
+        observed_skill_name = match.group(1) if match else None
+        if adapter.get("skill_name") != observed_skill_name:
+            errors.append("SKILL.md name and instance skill_name must match")
+        declared_schemas = adapter.get("data_schemas")
+        if not isinstance(declared_schemas, dict) or any(
+            declared_schemas.get(key) != value for key, value in CURRENT_DATA_SCHEMAS.items()
+        ):
+            errors.append("project instance data_schemas are missing or unsupported")
+        ownership = adapter.get("ownership")
+        if not isinstance(ownership, dict):
+            errors.append("project instance ownership declaration is missing")
+        else:
+            expected_hashes = ownership.get("managed_hashes")
+            if not isinstance(expected_hashes, dict) or not expected_hashes:
+                errors.append("project instance managed hashes are missing")
+            else:
+                try:
+                    if managed_hashes(root, sorted(expected_hashes)) != expected_hashes and not allow_managed_mismatch:
+                        errors.append("framework-managed adapter file hash mismatch")
+                except ValueError as exc:
+                    errors.append(str(exc))
     if not non_empty(project.get("project_name")):
         errors.append("project_name must not be empty")
     revision = project.get("revision")
@@ -326,9 +362,10 @@ def validate(root: Path) -> list[str]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("skill_root", type=Path)
+    parser.add_argument("--allow-legacy", action="store_true")
     args = parser.parse_args()
     root = args.skill_root.expanduser().resolve()
-    errors = validate(root)
+    errors = validate(root, allow_legacy=args.allow_legacy)
     if errors:
         print(json.dumps({"valid": False, "errors": errors}, ensure_ascii=False, indent=2))
         return 1

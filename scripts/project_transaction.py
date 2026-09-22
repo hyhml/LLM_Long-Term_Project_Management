@@ -13,6 +13,7 @@ import sys
 import tempfile
 from pathlib import Path
 
+from project_binding import require_binding
 from render_project_views import render as render_project_views
 from validate_project import validate as validate_project
 
@@ -28,7 +29,8 @@ AUTHORITATIVE_FILES = (
 SUPPORT_FILES = (
     "SKILL.md",
     "agents/openai.yaml",
-    "framework/version.json",
+    "project-instructions.md",
+    "framework/instance.json",
     "views/project-map.json",
     "index/manifest.json",
 )
@@ -76,6 +78,7 @@ def transaction_root(skill_root: Path, operation_id: str) -> Path:
 
 
 def prepare(skill_root: Path, operation_id: str) -> dict:
+    binding = require_binding(skill_root, write=True)
     errors = validate_project(skill_root)
     if errors:
         raise TransactionError(f"live project is invalid: {'; '.join(errors)}")
@@ -99,7 +102,12 @@ def prepare(skill_root: Path, operation_id: str) -> dict:
         "candidate": "candidate/",
     }
     write_atomic(root / "plan.json", encoded(plan))
-    return {"prepared": str(root), "candidate": str(candidate), "base_revision": project["revision"]}
+    return {
+        "prepared": str(root),
+        "candidate": str(candidate),
+        "project_id": binding["project_id"],
+        "base_revision": project["revision"],
+    }
 
 
 def load_decisions(path: Path) -> list[dict]:
@@ -174,6 +182,7 @@ def objective_change_is_authorized(live: dict, candidate: dict, decisions: list[
 
 
 def commit(skill_root: Path, operation_id: str, decisions_path: Path) -> dict:
+    binding = require_binding(skill_root, write=True)
     root = transaction_root(skill_root, operation_id)
     plan = read_json(root / "plan.json")
     candidate = root / "candidate"
@@ -244,7 +253,13 @@ def commit(skill_root: Path, operation_id: str, decisions_path: Path) -> dict:
     plan["new_revision"] = next_revision
     plan["receipt"] = str(receipt_path.relative_to(skill_root))
     write_atomic(root / "plan.json", encoded(plan))
-    return {"committed": operation_id, "old_revision": base_revision, "new_revision": next_revision, "receipt": str(receipt_path)}
+    return {
+        "committed": operation_id,
+        "project_id": binding["project_id"],
+        "old_revision": base_revision,
+        "new_revision": next_revision,
+        "receipt": str(receipt_path),
+    }
 
 
 def parse_args() -> argparse.Namespace:

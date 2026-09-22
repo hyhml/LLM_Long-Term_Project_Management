@@ -1,6 +1,19 @@
 {
   "schema_version": 1,
-  "framework_version": "0.4.0",
+  "framework_version": "0.5.0",
+  "compatibility": {
+    "current_entry_protocol": 1,
+    "supported_entry_protocols": [1],
+    "supported_data_schemas": {
+      "project": "ltpm-project-state/v2",
+      "task_board": "ltpm-task-board/v1",
+      "record_store": "ltpm-record-store/v2",
+      "source_registry": "ltpm-source-registry/v1",
+      "project_map": "ltpm-project-map-view/v3",
+      "index_manifest": "ltpm-index-manifest/v1",
+      "handoff": "llm-long-term-project-handoff/v1"
+    }
+  },
   "priority_semantics": {
     "load_priority": ["high", "low"],
     "task_priority": ["high", "low"],
@@ -58,6 +71,21 @@
       "id": "retrieval-coverage",
       "load_priority": "high",
       "rule": "Every retrieval reports searched and unsearched authorized scope and index freshness; an empty result never proves project-wide absence."
+    },
+    {
+      "id": "project-instance-isolation",
+      "load_priority": "high",
+      "rule": "Bind every project operation to one canonical child root, immutable project_id, revision, and compatible entry protocol; fail closed on identity mismatch, ambiguity, or incompatible formal writes."
+    },
+    {
+      "id": "one-project-conversation",
+      "load_priority": "high",
+      "rule": "An ordinary conversation has one active project; never switch implicitly, prefer a new conversation after another project's context was loaded, and use explicit read-mostly coordination for intentional cross-project work."
+    },
+    {
+      "id": "project-stateless-framework",
+      "load_priority": "high",
+      "rule": "The total skill owns shared behavior and compatibility logic but no concrete project state or mutable authoritative global current-project selection."
     }
   ],
   "governance_invariants": [
@@ -125,6 +153,27 @@
       "load_priority": "low",
       "trigger": "A change is mixed, ambiguous, crosses project/framework authority, or affects runtime and developer audiences differently.",
       "reference": "references/change-classification.md",
+      "status": "active"
+    },
+    {
+      "id": "project-binding",
+      "load_priority": "low",
+      "trigger": "A child project is invoked, an operation resolves a project root, or project identity or compatibility is uncertain.",
+      "reference": "references/project-binding.md",
+      "status": "active"
+    },
+    {
+      "id": "project-upgrade",
+      "load_priority": "low",
+      "trigger": "A legacy, incompatible, or modified child adapter requires inspection or upgrade.",
+      "reference": "references/project-upgrade.md",
+      "status": "active"
+    },
+    {
+      "id": "cross-project-coordination",
+      "load_priority": "low",
+      "trigger": "The user explicitly asks to compare or coordinate two or more managed projects.",
+      "reference": "references/cross-project.md",
       "status": "active"
     }
   ],

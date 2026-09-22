@@ -47,6 +47,9 @@ python scripts/validate_project.py /absolute/project/path/.agents/skills/example
 The generated layout separates authority and pending work:
 
 ```text
+SKILL.md                  thin explicit project entry
+framework/instance.json  identity, compatibility, schema, and ownership contract
+project-instructions.md  project-specific user-owned instructions
 state/     stable project contract, revision, current focus, and task board
 records/   accepted typed records and relations
 sources/   accepted source registry and access scope
@@ -57,3 +60,5 @@ packages/  handoffs and integration receipts
 ```
 
 `views/project-map.json` is generated from formal data in `state/`, `records/`, and `sources/`. Do not edit it to change project state. Report the created path, validation result, initial revision, and the explicit invocation name. Do not claim that the project is initialized if validation fails.
+
+The child does not copy the total skill's conditional protocols. On invocation it uses `framework/instance.json` to bind this project and delegates compatible shared behavior to the installed `long-term-project-manager`. Keep `project-instructions.md` project-owned so later framework updates preserve it.

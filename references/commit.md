@@ -6,6 +6,8 @@ Read `references/data-model.md` before constructing or editing formal objects.
 
 Before preparing a candidate, confirm that the accepted task contract classifies the work as `data:project` and names its write authority, storage targets, validation route, project-version route, and project-local release boundary. Route framework, regression/evaluation dataset, machine-environment, and private-user writes to separately authorized locations.
 
+The transaction tool first requires a `compatible` project binding. A legacy, ambiguous, modified, or schema-incompatible child remains inspectable but cannot open or commit a formal transaction.
+
 ## Prepare
 
 Read the current revision and create an isolated candidate:

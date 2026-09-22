@@ -2,6 +2,12 @@
 
 Use the existing generated files as the concrete schema examples. Keep the same `project_id` and project revision across all formal components.
 
+## Project instance and ownership
+
+`framework/instance.json` uses `ltpm-project-instance/v1`. It binds the immutable project ID and child skill name to the manager skill, entry protocol, framework release lineage, supported project-data schemas, and hashes of framework-managed adapter files.
+
+`SKILL.md`, `agents/openai.yaml`, and `framework/instance.json` are framework-managed adapter files. `project-instructions.md` and all project data directories are project-owned. Adapter refreshes must preserve project-owned files and do not advance the project revision. A future project-data schema migration is a separate accepted transaction.
+
 ## Project and tasks
 
 `state/project.json` owns the canonical revision, stable objective contract, and current focus. Its objective contract contains `objective_id`, `objective_revision`, `objective`, `scope`, `non_goals`, `assumptions`, `evidence_standard`, and `completion_standard`.
