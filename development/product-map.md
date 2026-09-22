@@ -187,7 +187,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `QUAL-001` | high | Protect the original six core invariants: cross-conversation loop, authority boundary, decision/revision transaction, project identity, rebuildability, and information boundary. | implemented | 23 original core tests remain passing. |
 | `QUAL-002` | high | Add regression tests only for reusable defects under an itemized proposal; keep real cases and gold data external. | implemented | ADR-0010 and regression policy. |
 | `QUAL-003` | high | Keep developer tests, ADRs, policies, and release tooling out of user distributions. | implemented | Exact runtime allowlist and release tests. |
-| `QUAL-004` | high | Build `main` and release archives from a whitelist, fail on unclassified files, and validate the generated runtime and child skill. | implemented | ADR-0011, deterministic builder, release tests, and `v0.4.0`/`v0.5.0`/`v0.6.0` receipts. |
+| `QUAL-004` | high | Build `main` and release archives from a whitelist, fail on unclassified files, and validate the generated runtime and child skill. | implemented | ADR-0011, deterministic builder, release tests, and receipts through `v0.6.2`. |
 | `QUAL-005` | high | Do not store project data, real regression/evaluation data, secrets, or unrelated private paths in framework releases. | implemented | Release allowlist, private ignore, and policies. |
 | `QUAL-006` | low | Domain-specific educational safety and adversarial test suites. | out-of-scope | May belong to a future educational child skill, not the generic framework core. |
 | `QUAL-007` | high | Add a multi-project isolation invariant group covering root/identity mismatch, retrieval and package boundaries, framework-update preservation, conversation switching, and explicit coordination. | implemented | Five synthetic tests cover separate search, explicit coordination, mismatch/ambiguity, session switch, handoff rejection, upgrade preservation, and rollback. |
@@ -275,7 +275,7 @@ The following gaps must remain visible in every framework planning session:
 2. **Future project-data schema migration (`CHILD-008`)**: v0.5.0 intentionally keeps existing data schemas and refuses unsupported schemas; a future release must design and test the first real migration before claiming general migration support.
 3. **Parallel exploration (`FLOW-007`)**: high priority but intentionally deferred; stale transactions are rejected, while parallel rebase/merge is not implemented.
 
-Release isolation is no longer an open gap: `QUAL-003` and `QUAL-004` were completed by `v0.4.0` and reused successfully through the stable `v0.6.1` release.
+Release isolation is no longer an open gap: `QUAL-003` and `QUAL-004` were completed by `v0.4.0` and reused successfully through the stable `v0.6.2` release.
 
 ## 7. Open design questions requiring user discussion
 
