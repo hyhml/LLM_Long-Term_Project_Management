@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ltpm-framework-feedback/v1",
+  "title": "LTPM consent-based framework feedback issue",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "feedback_id",
+    "created_at",
+    "producer",
+    "problem",
+    "classification_proposal",
+    "context",
+    "evidence",
+    "privacy",
+    "consent",
+    "request"
+  ],
+  "properties": {
+    "schema": {"const": "ltpm-framework-feedback/v1"},
+    "feedback_id": {"type": "string", "pattern": "^fb-[A-Za-z0-9][A-Za-z0-9._-]{5,127}$"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "producer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["framework_version", "child_protocol_version", "platform", "tool_versions"],
+      "properties": {
+        "framework_version": {"type": "string", "minLength": 1},
+        "child_protocol_version": {"type": ["integer", "null"], "minimum": 1},
+        "platform": {"type": "string", "minLength": 1},
+        "tool_versions": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "problem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "title", "observed_behavior", "expected_behavior", "reproduction_steps", "frequency", "impact", "blocking"],
+      "properties": {
+        "kind": {"enum": ["bug", "ambiguity", "missing-capability", "usability", "compatibility", "data-loss-risk"]},
+        "title": {"type": "string", "minLength": 1},
+        "observed_behavior": {"type": "string", "minLength": 1},
+        "expected_behavior": {"type": "string", "minLength": 1},
+        "reproduction_steps": {"type": "array", "items": {"type": "string"}},
+        "frequency": {"enum": ["once", "intermittent", "always", "unknown"]},
+        "impact": {"type": "string", "minLength": 1},
+        "blocking": {"type": "boolean"}
+      }
+    },
+    "classification_proposal": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "reasoning", "confidence", "suspected_component", "remediation_scope"],
+      "properties": {
+        "category": {"enum": ["framework-defect-candidate", "child-adapter-defect", "project-data", "project-specific", "environment", "external-tool", "usage-or-documentation", "unknown"]},
+        "reasoning": {"type": "string"},
+        "confidence": {"enum": ["low", "medium", "high"]},
+        "suspected_component": {"type": ["string", "null"]},
+        "remediation_scope": {"enum": ["shared-runtime-fix", "child-adapter-upgrade", "project-data-migration", "documentation-only", "environment-only", "unknown"]}
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project_alias", "project_revision", "task_id"],
+      "properties": {
+        "project_alias": {"type": ["string", "null"]},
+        "project_revision": {"type": ["integer", "null"], "minimum": 0},
+        "task_id": {"type": ["string", "null"]}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["included_items", "errors", "artifact_hashes", "inspected_scope", "uninspected_scope", "known_gaps"],
+      "properties": {
+        "included_items": {"type": "array", "items": {"type": "string"}},
+        "errors": {"type": "array", "items": {"type": "string"}},
+        "artifact_hashes": {"type": "array", "items": {"type": "object", "required": ["label", "sha256"], "additionalProperties": false, "properties": {"label": {"type": "string"}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}}},
+        "inspected_scope": {"type": "array", "items": {"type": "string"}},
+        "uninspected_scope": {"type": "array", "items": {"type": "string"}},
+        "known_gaps": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sensitivity", "redactions", "excluded_items"],
+      "properties": {
+        "sensitivity": {"enum": ["public", "internal", "private", "unknown"]},
+        "redactions": {"type": "array", "items": {"type": "string"}},
+        "excluded_items": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "consent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["local_collection", "export", "developer_use"],
+      "properties": {
+        "local_collection": {"type": "object", "additionalProperties": false, "required": ["approved", "approved_at", "scope"], "properties": {"approved": {"const": true}, "approved_at": {"type": "string", "format": "date-time"}, "scope": {"type": "array", "minItems": 1, "items": {"type": "string"}}}},
+        "export": {"type": "object", "additionalProperties": false, "required": ["approved", "approved_at", "approved_fields", "approved_attachments"], "properties": {"approved": {"const": true}, "approved_at": {"type": "string", "format": "date-time"}, "approved_fields": {"type": "array", "minItems": 8, "maxItems": 8, "uniqueItems": true, "items": {"enum": ["producer", "problem", "classification_proposal", "context", "evidence", "privacy", "request", "redaction-report"]}}, "approved_attachments": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^attachments/"}}}},
+        "developer_use": {"type": "object", "additionalProperties": false, "required": ["read_approved", "retention", "allow_synthetic_derivative"], "properties": {"read_approved": {"const": true}, "retention": {"enum": ["one-shot", "until-resolved", "long-term-regression-candidate"]}, "allow_synthetic_derivative": {"type": "boolean"}}}
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["desired_outcome", "acceptable_workaround"],
+      "properties": {
+        "desired_outcome": {"type": "string", "minLength": 1},
+        "acceptable_workaround": {"type": ["string", "null"]}
+      }
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "framework_version": "0.5.0",
+  "framework_version": "0.6.0",
   "compatibility": {
     "current_entry_protocol": 1,
     "supported_entry_protocols": [1],
@@ -12,6 +12,9 @@
       "project_map": "ltpm-project-map-view/v3",
       "index_manifest": "ltpm-index-manifest/v1",
       "handoff": "llm-long-term-project-handoff/v1"
+    },
+    "supported_transport_schemas": {
+      "feedback": "ltpm-framework-feedback/v1"
     }
   },
   "priority_semantics": {
@@ -103,6 +106,11 @@
       "id": "regression-proposal-boundary",
       "load_priority": "high",
       "rule": "A reproducible reusable defect triggers a regression-test proposal; framework test code may use synthetic fixtures, while real cases and gold data remain separately accepted external regression/evaluation data."
+    },
+    {
+      "id": "consent-based-framework-feedback",
+      "load_priority": "high",
+      "rule": "A user-raised concern that may involve the framework triggers provisional classification, but local evidence collection and exact-scope export require separate approval; there is no automatic upload, and real feedback remains external to project records and framework releases."
     }
   ],
   "capabilities": [
@@ -174,6 +182,13 @@
       "load_priority": "low",
       "trigger": "The user explicitly asks to compare or coordinate two or more managed projects.",
       "reference": "references/cross-project.md",
+      "status": "active"
+    },
+    {
+      "id": "framework-feedback",
+      "load_priority": "low",
+      "trigger": "The user raises a problem that may involve the framework, or a reusable framework defect, compatibility issue, unsafe allowance, blocked valid action, repeated ambiguity, or data-loss/privacy risk is observed.",
+      "reference": "references/framework-feedback.md",
       "status": "active"
     }
   ],

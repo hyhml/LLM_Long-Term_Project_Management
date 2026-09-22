@@ -23,8 +23,9 @@ Build and maintain project-local skills without turning this framework skill int
 12. Keep claims, evidence, attempts, reviews, and decisions distinct. Tool success proves execution, package hashes prove integrity, and neither proves a claim. Preserve a failed attempt formally only when it includes what was tried, why and under which conditions it failed, retry conditions, and minimal reproduction or key evidence.
 13. Use one transaction protocol for every important management write: read the current revision, propose items, record each user decision, edit and validate a candidate, increment the revision once, publish, then create a receipt. Imported scripts and tools remain quarantined until separately approved.
 14. Every retrieval result must report searched and unsearched authorized scope, index revision, and coverage gaps. An empty result means only “not found in the searched, indexed, and authorized scope,” never “absent from the project.”
-15. When a user correction, reproducible failure, violated invariant, or repeated ambiguity reveals a reusable framework defect, propose a regression test. Never silently store the real case: test code and synthetic fixtures are framework artifacts, while real cases and gold data remain external `data:regression` or `data:evaluation` and require a separate accepted write.
-16. Keep the private machine profile outside exports. Never record secrets, tokens, raw credentials, or unrelated private paths.
+15. Treat a user-raised concern that may involve the framework as a feedback trigger, even before reproducibility or root cause is known. Also trigger on a user correction, reproducible shared failure, violated invariant, repeated ambiguity, or credible cross-project reuse. Classify it only as a framework candidate until developer triage; do not let feedback capture displace the active project task.
+16. Never collect, export, upload, retain, or derive a regression test from real feedback silently. Obtain separate user approval for local evidence collection and for the exact export scope. Feedback export is manual and has no telemetry; real cases remain external `data:regression`, while only separately approved, non-reconstructive synthetic tests may enter framework development.
+17. Keep the private machine profile outside exports. Never record secrets, tokens, raw credentials, unrelated private paths, full conversations, or whole project stores in feedback by default.
 
 ## Route the request
 
@@ -38,5 +39,6 @@ Build and maintain project-local skills without turning this framework skill int
 - Read `references/project-binding.md` when invoking or resolving a child project, checking a session switch, or diagnosing identity/compatibility.
 - Read `references/project-upgrade.md` when a child is legacy, incompatible, or has modified framework-managed adapter files.
 - Read `references/cross-project.md` only when the user explicitly requests comparison or coordination across projects.
+- Read `references/framework-feedback.md` when the user raises a problem that may involve the framework, or when a reusable framework defect, compatibility problem, unsafe allowance, blocked valid action, repeated ambiguity, or data-loss/privacy risk is observed.
 
 The generated child skill is an explicitly invoked thin project adapter. It carries project identity, compatibility metadata, user-owned project instructions, and project-local data while delegating reusable protocols to this installed total skill. It may read this skill's confirmed private machine profile for capability selection, but it must not copy that profile into the project.
