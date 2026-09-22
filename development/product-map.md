@@ -2,7 +2,7 @@
 
 - Scope: development-only product intent and coverage map
 - Authority: user-confirmed requirements, organized for framework development
-- Updated: 2026-09-22
+- Updated: 2026-09-23
 - Runtime distribution: excluded from `main` and user release archives
 
 ## How to use this map
@@ -125,6 +125,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `CHILD-009` | high | Permit read-only inspection when compatibility is uncertain; block unsafe formal writes rather than guessing. | implemented | Binding gate permits legacy/incompatible reads and blocks transactions, rendering, and package export. |
 | `CHILD-010` | low | Discover and report multiple local projects that could be upgraded, without silently modifying them. | planned | No local project registry or discovery command exists. |
 | `CHILD-011` | high | Keep project-specific user instructions outside framework-managed adapter files so framework updates preserve them. | implemented | New and upgraded children use a user-owned `project-instructions.md`; rollback/preservation tests cover it. |
+| `CHILD-012` | high | After generation, report whether the child is on the current Codex discovery path; when it is not, require a new session rooted at the project without creating a user-level child entry. | implemented | Structured initializer discovery result, bootstrap guidance, and synthetic parent/project path tests. |
 
 ### C. Project identity, map, and knowledge
 
@@ -213,6 +214,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `ISOL-004` | high | Require explicit cross-project coordination, declare participating project IDs and retrieval coverage, and keep proposals, decisions, revisions, and receipts separate per project. | implemented | Read-mostly coordinator reports participants/coverage and forbids merged writes. |
 | `ISOL-005` | high | Keep the total skill free of concrete project state and any mutable authoritative global current-project selection. | implemented | Runtime invariant, no selector storage, project-local initializer output, and release/isolation tests. |
 | `ISOL-006` | high | Detect ambiguous child resolution, duplicate identity, or incompatible framework binding and allow inspection while blocking unsafe formal writes. | implemented | Binding statuses, sibling duplicate detection, managed hashes, schema checks, and fail-closed tools. |
+| `ISOL-007` | high | Keep exactly one framework-generated discoverable `SKILL.md` per managed project identity; internal candidates and snapshots must not become runtime entries. | implemented | Data-only transaction candidates, temporary full validation, approved legacy cleanup, and synthetic repeated-transaction tests. |
 
 ### J. Consent-based framework feedback
 
@@ -236,7 +238,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `PROD-005` | depends_on | `CHILD-004`, `ENV-006` | A portable long-term project needs explicit framework compatibility metadata. |
 | `PROD-006` | depends_on | `CHILD-004`, `CHILD-007` | A managed instance requires ownership and managed-file tracking. |
 | `PROD-009` | depends_on | `ISOL-001`, `ISOL-002`, `ISOL-005` | Sharing the framework is safe only when identity, operations, and global state remain project-bound. |
-| `CHILD-001` | depends_on | `CHILD-002`, `CHILD-003` | A skeleton alone does not complete project-specific generation. |
+| `CHILD-001` | depends_on | `CHILD-002`, `CHILD-003`, `CHILD-012` | A skeleton alone does not complete project-specific generation, and completion must identify the usable discovery context. |
 | `CHILD-005` | depends_on | `CHILD-004` | Compatibility detection requires recorded versions and schemas. |
 | `CHILD-006` | depends_on | `CHILD-005`, `CHILD-007`, `CHILD-008` | Synchronization requires detection, safe managed-file updates, and separate data migration. |
 | `CHILD-007` | constrained_by | `DATA-001`, `DATA-002`, `QUAL-005` | Architecture refresh must preserve project identity, facts, and privacy. |
@@ -256,6 +258,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `ISOL-002` | constrains | `DATA-009`, `FLOW-003`, `FLOW-005` | Search, handoff, and commit must never infer a different project boundary. |
 | `ISOL-003` | constrains | `FLOW-001`, `TASK-001` | Role and task contracts operate within one explicitly active project conversation. |
 | `ISOL-004` | constrained_by | `FLOW-005`, `DATA-009` | Cross-project coordination retains separate transactions and reports retrieval coverage. |
+| `FLOW-005` | constrained_by | `ISOL-007` | Transaction candidates and cleanup must preserve one canonical discoverable project entry. |
 | `FLOW-009` | constrained_by | `FLOW-003`, `FLOW-004`, `QUAL-005` | Package approval authorizes creation, not later acceptance into project authority. |
 | `FEED-001` | uses | `GOV-001`, `GOV-005` | Runtime feedback begins with continuous, assistant-owned provisional classification. |
 | `FEED-003` | constrained_by | `QUAL-005`, `ENV-005` | Consent and minimization preserve private, project, and machine-data boundaries. |

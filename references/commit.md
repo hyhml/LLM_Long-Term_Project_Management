@@ -8,6 +8,8 @@ Before preparing a candidate, confirm that the accepted task contract classifies
 
 The transaction tool first requires a `compatible` project binding. A legacy, ambiguous, modified, or schema-incompatible child remains inspectable but cannot open or commit a formal transaction.
 
+Transaction candidates persist only project-management data and derived files. Complete skill entry files are assembled temporarily outside the project for validation, so pending or committed work cannot become another discoverable child skill.
+
 ## Prepare
 
 Read the current revision and create an isolated candidate:
@@ -34,5 +36,22 @@ python scripts/project_transaction.py commit \
 ```
 
 The tool verifies the live base revision, validates the candidate at that revision, advances all formal components exactly once, regenerates the map, marks the retrieval index stale, validates again, publishes the files, and creates a receipt under `packages/archive/receipts/`. The tool validates the decision ledger but cannot infer whether every candidate edit corresponds to an accepted item; the maintainer/integrator must enforce that mapping during candidate editing and review.
+
+Successful commits remove their candidate data while preserving the plan and receipt. Projects created by older framework versions may retain committed candidates containing `SKILL.md`. Inspect them without mutation:
+
+```bash
+python scripts/project_transaction.py cleanup-preview \
+  --project-skill /absolute/project/.agents/skills/example-project
+```
+
+Present every eligible and excluded operation. After the user approves the exact preview SHA-256, run:
+
+```bash
+python scripts/project_transaction.py cleanup-committed \
+  --project-skill /absolute/project/.agents/skills/example-project \
+  --approved-preview-sha256 <approved-sha256>
+```
+
+Cleanup requires matching committed plans and receipts, refuses a stale preview, leaves pending or unproven candidates untouched, does not advance project revision, and writes a separate cleanup receipt.
 
 This is a framework workflow transaction with in-process rollback. It is not crash-atomic storage: immutable snapshots and an atomic `HEAD` remain proposed in ADR-0001. Never claim stronger guarantees.

@@ -44,6 +44,13 @@ Then run:
 python scripts/validate_project.py /absolute/project/path/.agents/skills/example-project
 ```
 
+Read the initializer's `discovery` result before reporting completion:
+
+- `current-scope` means the project root is the current working directory or an ancestor on Codex's upward repository-skill path. Report the invocation; if it is not detected after creation, restart Codex.
+- `new-project-root-session-required` means the generated child is outside the current conversation's discovery path. Do not promise immediate invocation. Tell the user to start a new Codex session from the returned `launch_directory`, then use the returned invocation.
+
+Keep the child project-local. Do not copy or link it into the user-level skill directory as an initialization side effect.
+
 The generated layout separates authority and pending work:
 
 ```text
@@ -59,6 +66,6 @@ index/     disposable retrieval state with explicit coverage metadata
 packages/  handoffs and integration receipts
 ```
 
-`views/project-map.json` is generated from formal data in `state/`, `records/`, and `sources/`. Do not edit it to change project state. Report the created path, validation result, initial revision, and the explicit invocation name. Do not claim that the project is initialized if validation fails.
+`views/project-map.json` is generated from formal data in `state/`, `records/`, and `sources/`. Do not edit it to change project state. Report the created path, validation result, initial revision, discovery status, launch directory, and explicit invocation name. Do not claim that the project is initialized if validation fails.
 
 The child does not copy the total skill's conditional protocols. On invocation it uses `framework/instance.json` to bind this project and delegates compatible shared behavior to the installed `long-term-project-manager`. Keep `project-instructions.md` project-owned so later framework updates preserve it.

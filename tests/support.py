@@ -12,10 +12,10 @@ ROOT = Path(__file__).resolve().parents[1]
 PYTHON = sys.executable
 
 
-def run(*arguments: object, expected: int = 0) -> subprocess.CompletedProcess[str]:
+def run(*arguments: object, expected: int = 0, cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
     result = subprocess.run(
         [PYTHON, *map(str, arguments)],
-        cwd=ROOT,
+        cwd=cwd or ROOT,
         text=True,
         capture_output=True,
         check=False,

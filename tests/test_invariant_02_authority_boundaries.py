@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from support import ROOT, ProjectTestCase, read_json, run, valid_task_contract, write_json
 
@@ -111,3 +112,47 @@ class AuthorityBoundaryTest(ProjectTestCase):
             "不应覆盖",
             expected=1,
         )
+
+    def initialize_from(self, cwd: Path, project: Path, skill_name: str) -> dict:
+        result = run(
+            ROOT / "scripts" / "init_project.py",
+            "--project-root",
+            project,
+            "--skill-name",
+            skill_name,
+            "--project-name",
+            "发现范围测试",
+            "--goal",
+            "验证项目本地 skill 发现边界",
+            "--scope",
+            "合成路径关系",
+            "--evidence-standard",
+            "初始化器结构化结果",
+            "--criterion",
+            "报告正确启动目录",
+            cwd=cwd,
+        )
+        return json.loads(result.stdout)
+
+    def test_initializer_reports_project_local_discovery_scope(self) -> None:
+        current_project = self.temp / "current-project"
+        current_project.mkdir()
+        current = self.initialize_from(current_project, current_project, "current-scope")
+        self.assertEqual(current["discovery"]["status"], "current-scope")
+        self.assertEqual(current["discovery"]["launch_directory"], str(current_project.resolve()))
+        self.assertEqual(current["discovery"]["invocation"], "$current-scope")
+
+        repository = self.temp / "repository"
+        nested = repository / "nested"
+        nested.mkdir(parents=True)
+        (repository / ".git").mkdir()
+        ancestor = self.initialize_from(nested, repository, "ancestor-scope")
+        self.assertEqual(ancestor["discovery"]["status"], "current-scope")
+
+        parent = self.temp / "parent"
+        descendant = parent / "descendant-project"
+        descendant.mkdir(parents=True)
+        outside = self.initialize_from(parent, descendant, "new-session-required")
+        self.assertEqual(outside["discovery"]["status"], "new-project-root-session-required")
+        self.assertEqual(outside["discovery"]["launch_directory"], str(descendant.resolve()))
+        self.assertFalse((parent / ".agents" / "skills" / "new-session-required").exists())
