@@ -272,7 +272,7 @@ The following gaps must remain visible in every framework planning session:
 2. **Future project-data schema migration (`CHILD-008`)**: v0.5.0 intentionally keeps existing data schemas and refuses unsupported schemas; a future release must design and test the first real migration before claiming general migration support.
 3. **Parallel exploration (`FLOW-007`)**: high priority but intentionally deferred; stale transactions are rejected, while parallel rebase/merge is not implemented.
 
-Release isolation is no longer an open gap: `QUAL-003` and `QUAL-004` were completed by `v0.4.0` and reused successfully for the stable `v0.5.0` and `v0.6.0` releases.
+Release isolation is no longer an open gap: `QUAL-003` and `QUAL-004` were completed by `v0.4.0` and reused successfully through the stable `v0.6.1` release.
 
 ## 7. Open design questions requiring user discussion
 
