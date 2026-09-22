@@ -86,6 +86,10 @@ install and explicitly invoke total skill
 -> propose and validate child architecture upgrade
 -> migrate project data separately when a schema change requires it
 -> generate upgrade and migration receipts
+-> when a user raises a possible framework problem, classify it provisionally
+-> collect and export only the separately approved minimum feedback scope
+-> let the user manually submit one verified feedback file to developer intake
+-> triage externally, derive only approved synthetic tests, fix, and return a resolution receipt
 ```
 
 Generation and upgrade are both part of the primary product capability. Implementing initialization without a supported upgrade path does not complete the child-skill lifecycle.
@@ -207,6 +211,19 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `ISOL-005` | high | Keep the total skill free of concrete project state and any mutable authoritative global current-project selection. | implemented | Runtime invariant, no selector storage, project-local initializer output, and release/isolation tests. |
 | `ISOL-006` | high | Detect ambiguous child resolution, duplicate identity, or incompatible framework binding and allow inspection while blocking unsafe formal writes. | implemented | Binding statuses, sibling duplicate detection, managed hashes, schema checks, and fail-closed tools. |
 
+### J. Consent-based framework feedback
+
+| ID | Priority | Requirement | Status | Evidence or gap |
+|---|---|---|---|---|
+| `FEED-001` | high | Trigger provisional feedback classification whenever the user actively raises a problem that may involve the framework, as well as for observed reusable failures, invariant violations, repeated ambiguity, unsafe allowances, blocked valid actions, or data-loss/privacy risk. | implemented | Total-skill high-priority rule, framework map trigger, conditional protocol, and thin-child route. |
+| `FEED-002` | high | Distinguish provisional cause classification from remediation scope; do not claim a framework defect before developer triage. | implemented | Versioned issue schema separates category, confidence, reasoning, suspected component, and remediation scope. |
+| `FEED-003` | high | Require separate user approval for local evidence collection and for the exact exported fields and attachments. | implemented | Runtime protocol and exporter reject absent two-stage consent, attachment mismatch, or unconfirmed redaction review. |
+| `FEED-004` | high | Export one integrity-checked feedback file without telemetry or automatic upload, and keep it distinct from project handoffs and project authority. | implemented | `.ltpm-feedback` protocol and deterministic exporter/verifier; user performs transport manually. |
+| `FEED-005` | high | Minimize and redact feedback; exclude secrets, private machine profiles, full conversations, whole project stores, and unrelated private paths by default while reporting coverage gaps. | implemented | Feedback protocol, schema, redaction report, package inspection, and synthetic tests. |
+| `FEED-006` | high | Keep real feedback external to the repository and runtime distribution; developer intake verifies, inspects, and quarantines it without executing attachments. | implemented | Developer-only intake refuses repository quarantine and release allowlist excludes the harness. |
+| `FEED-007` | high | Derive repository regression tests only from separately authorized, non-reconstructive synthetic cases under itemized triage. | implemented | Consent field, external triage template, ADR-0010 policy integration, and ADR-0014. |
+| `FEED-008` | high | Return a non-mutating resolution receipt that links feedback identity, final classification, affected/fixed versions, and required child action. | implemented | Developer resolution command emits `ltpm-feedback-resolution/v1`. |
+
 ## 5. Typed requirement relationships
 
 | From | Relation | To | Meaning |
@@ -235,6 +252,11 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `ISOL-002` | constrains | `DATA-009`, `FLOW-003`, `FLOW-005` | Search, handoff, and commit must never infer a different project boundary. |
 | `ISOL-003` | constrains | `FLOW-001`, `TASK-001` | Role and task contracts operate within one explicitly active project conversation. |
 | `ISOL-004` | constrained_by | `FLOW-005`, `DATA-009` | Cross-project coordination retains separate transactions and reports retrieval coverage. |
+| `FEED-001` | uses | `GOV-001`, `GOV-005` | Runtime feedback begins with continuous, assistant-owned provisional classification. |
+| `FEED-003` | constrained_by | `QUAL-005`, `ENV-005` | Consent and minimization preserve private, project, and machine-data boundaries. |
+| `FEED-004` | constrained_by | `FLOW-006`, `ISOL-005` | Feedback integrity is not truth or identity, and the total skill remains project-stateless. |
+| `FEED-006` | depends_on | `PROD-003`, `QUAL-003`, `QUAL-005` | Safe intake depends on the developer/runtime boundary and external real-case storage. |
+| `FEED-007` | uses | `QUAL-002` | Test derivation follows the accepted regression policy rather than importing a real incident. |
 
 ## 6. Current high-priority gaps
 

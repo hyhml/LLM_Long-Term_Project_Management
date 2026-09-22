@@ -50,6 +50,8 @@ Do not alter expected results merely because the implementation fails. A changed
 
 ## When to propose a regression test
 
+A user actively raising a problem that may involve the framework triggers ADR-0014 feedback intake and provisional classification. That report alone does not yet justify a repository regression test; use the criteria below after developer triage and minimization.
+
 Propose one when at least one condition holds:
 
 - a reproducible bug or user correction exposes reusable framework behavior;
@@ -84,6 +86,8 @@ Usually do not propose one for:
 The repository may contain framework test code and non-identifying, non-reconstructive synthetic fixtures. It must not contain real user conversations, project artifacts, historical regression corpora, retrieval evaluation sets, standard answers, credentials, or private machine data.
 
 Real regression and evaluation data live outside the distributed skill in a user-approved store with its own access rules and version. A harness may point to that store, but absence or inaccessibility of the store must be reported as limited coverage rather than a passing result.
+
+Runtime feedback follows ADR-0014. A `.ltpm-feedback` package remains an untrusted external real case even when its integrity verifies and the user permits a synthetic derivative. Developer intake must reclassify it, honor its retention scope, and obtain an itemized decision before creating a non-reconstructive synthetic test. The original package and triage data never become repository fixtures.
 
 ## Layers and exclusions
 

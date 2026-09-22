@@ -126,6 +126,21 @@
         "framework-update"
       ],
       "runtime_effect": "implemented-in-0.5.0-rc.1"
+    },
+    {
+      "id": "ADR-0014",
+      "title": "Consent-based runtime-to-developer framework feedback",
+      "status": "accepted",
+      "path": "development/adr/0014-consent-based-framework-feedback.md",
+      "topics": [
+        "feedback",
+        "consent",
+        "privacy",
+        "developer-intake",
+        "external-regression-data",
+        "resolution-receipt"
+      ],
+      "runtime_effect": "implemented-in-0.6.0-dev.1"
     }
   ]
 }

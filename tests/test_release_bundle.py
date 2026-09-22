@@ -9,6 +9,7 @@ from support import ROOT, ProjectTestCase, read_json, run
 
 BUILDER = ROOT / "development" / "release" / "build_runtime.py"
 ALLOWLIST = ROOT / "development" / "release" / "runtime-allowlist.json"
+TEST_RELEASE = "0.6.0"
 
 
 class RuntimeReleaseBundleTest(ProjectTestCase):
@@ -20,7 +21,7 @@ class RuntimeReleaseBundleTest(ProjectTestCase):
             "--source-root",
             source,
             "--release-version",
-            "0.5.0",
+            TEST_RELEASE,
             "--output-dir",
             output,
         ]
@@ -49,11 +50,9 @@ class RuntimeReleaseBundleTest(ProjectTestCase):
         }
         self.assertEqual(produced, set(allowlist))
         self.assertEqual(report["file_count"], len(allowlist))
-        self.assertEqual(report["release_version"], "0.5.0")
-        self.assertEqual(read_json(runtime / "references" / "framework-map.json")["framework_version"], "0.5.0")
-        self.assertNotEqual(
-            read_json(ROOT / "references" / "framework-map.json")["framework_version"], "0.5.0"
-        )
+        self.assertEqual(report["release_version"], TEST_RELEASE)
+        self.assertEqual(read_json(runtime / "references" / "framework-map.json")["framework_version"], TEST_RELEASE)
+        self.assertEqual(read_json(ROOT / "references" / "framework-map.json")["framework_version"], "0.6.0-dev.1")
         for excluded in ("AGENTS.md", "development", "tests", "private"):
             self.assertFalse((runtime / excluded).exists())
         self.assertTrue(archive.is_file())
@@ -86,9 +85,12 @@ class RuntimeReleaseBundleTest(ProjectTestCase):
         validation = json.loads(run(runtime / "scripts" / "validate_project.py", child).stdout)
         self.assertTrue(validation["valid"])
         instance = read_json(child / "framework" / "instance.json")
-        self.assertEqual(instance["last_adapter_update_with"], "0.5.0")
+        self.assertEqual(instance["last_adapter_update_with"], TEST_RELEASE)
         self.assertFalse((child / "framework" / "conditional").exists())
         self.assertTrue((child / "project-instructions.md").is_file())
+        self.assertTrue((runtime / "scripts" / "feedback.py").is_file())
+        self.assertTrue((runtime / "references" / "framework-feedback.md").is_file())
+        self.assertFalse((runtime / "development" / "feedback").exists())
 
     def test_unclassified_or_missing_source_file_blocks_release(self) -> None:
         source = self.copy_source("source-unclassified")
