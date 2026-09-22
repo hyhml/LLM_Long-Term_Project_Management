@@ -4,7 +4,7 @@ import json
 import zipfile
 from pathlib import Path
 
-from support import ROOT, ProjectTestCase, handoff_with_change, read_json, run, write_json
+from support import ROOT, ProjectTestCase, export_handoff, handoff_with_change, read_json, run, write_json
 
 
 class CrossConversationLoopTest(ProjectTestCase):
@@ -15,7 +15,15 @@ class CrossConversationLoopTest(ProjectTestCase):
         handoff_path = self.temp / "handoff.json"
         write_json(handoff_path, handoff)
         package = self.temp / name
-        exported = run(
+        exported = export_handoff(self.skill, handoff_path, package)
+        return package, json.loads(exported.stdout)
+
+    def test_export_requires_approval_of_the_current_preview(self) -> None:
+        handoff_path = self.temp / "approval-handoff.json"
+        output = self.temp / "approval.llmpack"
+        write_json(handoff_path, handoff_with_change())
+
+        rejected = run(
             ROOT / "scripts" / "handoff.py",
             "export",
             "--project-skill",
@@ -23,9 +31,43 @@ class CrossConversationLoopTest(ProjectTestCase):
             "--handoff",
             handoff_path,
             "--output",
-            package,
+            output,
+            expected=1,
         )
-        return package, json.loads(exported.stdout)
+        self.assertIn("approved preview", rejected.stderr)
+        self.assertFalse(output.exists())
+
+        preview = json.loads(
+            run(
+                ROOT / "scripts" / "handoff.py",
+                "preview",
+                "--project-skill",
+                self.skill,
+                "--handoff",
+                handoff_path,
+                "--output",
+                output,
+            ).stdout
+        )
+        self.assertFalse(output.exists())
+        changed = handoff_with_change()
+        changed["summary"] = "预览批准后发生变化"
+        write_json(handoff_path, changed)
+        stale = run(
+            ROOT / "scripts" / "handoff.py",
+            "export",
+            "--project-skill",
+            self.skill,
+            "--handoff",
+            handoff_path,
+            "--output",
+            output,
+            "--approved-preview-sha256",
+            preview["preview_sha256"],
+            expected=1,
+        )
+        self.assertIn("does not match", stale.stderr)
+        self.assertFalse(output.exists())
 
     def test_package_unpack_proposal_and_accepted_commit_close_the_loop(self) -> None:
         package, exported = self.export_package()

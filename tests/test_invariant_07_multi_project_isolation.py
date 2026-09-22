@@ -5,7 +5,7 @@ import json
 import shutil
 from pathlib import Path
 
-from support import ROOT, ProjectTestCase, handoff_with_change, read_json, run, write_json
+from support import ROOT, ProjectTestCase, export_handoff, handoff_with_change, read_json, run, write_json
 
 
 def digest_files(root: Path, relatives: tuple[str, ...]) -> str:
@@ -127,16 +127,7 @@ class MultiProjectIsolationTest(ProjectTestCase):
         handoff = self.temp / "handoff.json"
         package = self.temp / "first.llmpack"
         write_json(handoff, handoff_with_change())
-        run(
-            ROOT / "scripts" / "handoff.py",
-            "export",
-            "--project-skill",
-            self.skill,
-            "--handoff",
-            handoff,
-            "--output",
-            package,
-        )
+        export_handoff(self.skill, handoff, package)
         rejected = run(
             ROOT / "scripts" / "handoff.py",
             "check-destination",

@@ -148,7 +148,7 @@
       "status": "accepted",
       "path": "development/adr/0015-proportional-work-and-concise-consent.md",
       "topics": ["change-weight", "consent", "environment", "packaging", "compatibility"],
-      "runtime_effect": "none-until-implemented-in-0.6.1"
+      "runtime_effect": "implemented-in-0.6.1-dev.1"
     }
   ]
 }

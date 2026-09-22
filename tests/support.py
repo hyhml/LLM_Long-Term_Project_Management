@@ -39,6 +39,33 @@ def write_json(path: Path, value: object) -> None:
     path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
+def export_handoff(project_skill: Path, handoff: Path, output: Path) -> subprocess.CompletedProcess[str]:
+    preview = json.loads(
+        run(
+            ROOT / "scripts" / "handoff.py",
+            "preview",
+            "--project-skill",
+            project_skill,
+            "--handoff",
+            handoff,
+            "--output",
+            output,
+        ).stdout
+    )
+    return run(
+        ROOT / "scripts" / "handoff.py",
+        "export",
+        "--project-skill",
+        project_skill,
+        "--handoff",
+        handoff,
+        "--output",
+        output,
+        "--approved-preview-sha256",
+        preview["preview_sha256"],
+    )
+
+
 def valid_task_contract() -> dict:
     return {
         "schema": "ltpm-task-contract/v1",

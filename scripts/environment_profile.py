@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Detect a private machine-profile draft or save a user-confirmed profile."""
+"""Discover machine capabilities and maintain the private machine profile."""
 
 from __future__ import annotations
 
@@ -102,6 +102,25 @@ def detect() -> dict:
     }
 
 
+def discover_tools() -> dict:
+    """Return the bounded capability scope used by approved first-run initialization."""
+    return {
+        "schema_version": 1,
+        "profile_revision": 0,
+        "status": "draft-approved-discovery",
+        "generated_at": utc_now(),
+        "system": {
+            "os": platform.system(),
+            "architecture": platform.machine(),
+            "python": platform.python_version(),
+        },
+        "commands": {name: bool(shutil.which(name)) for name in COMMANDS},
+        "installed_skills": skill_names(),
+        "local_model_names": model_names(),
+        "user_notes": [],
+    }
+
+
 def reject_sensitive_keys(value: object, prefix: str = "") -> None:
     if isinstance(value, dict):
         for key, child in value.items():
@@ -114,8 +133,7 @@ def reject_sensitive_keys(value: object, prefix: str = "") -> None:
             reject_sensitive_keys(child, f"{prefix}{index}.")
 
 
-def save(input_path: Path) -> dict:
-    profile = json.loads(input_path.read_text(encoding="utf-8"))
+def save_profile(profile: dict) -> dict:
     if not isinstance(profile, dict):
         raise ValueError("confirmed profile must be a JSON object")
     reject_sensitive_keys(profile)
@@ -135,10 +153,21 @@ def save(input_path: Path) -> dict:
     return {"saved": str(destination), "profile_revision": profile["profile_revision"]}
 
 
+def save(input_path: Path) -> dict:
+    profile = json.loads(input_path.read_text(encoding="utf-8"))
+    return save_profile(profile)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
     subparsers.add_parser("detect")
+    initialize_parser = subparsers.add_parser("initialize")
+    initialize_parser.add_argument(
+        "--approved",
+        action="store_true",
+        help="confirm that the user approved bounded tool discovery and private save",
+    )
     save_parser = subparsers.add_parser("save")
     save_parser.add_argument("--input", type=Path, required=True)
     args = parser.parse_args()
@@ -146,7 +175,12 @@ def main() -> int:
         print(json.dumps(detect(), ensure_ascii=False, indent=2))
         return 0
     try:
-        result = save(args.input.expanduser().resolve())
+        if args.command == "initialize":
+            if not args.approved:
+                raise ValueError("approved tool discovery is required before initialization")
+            result = save_profile(discover_tools())
+        else:
+            result = save(args.input.expanduser().resolve())
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         print(json.dumps({"saved": False, "error": str(exc)}, ensure_ascii=False, indent=2), file=sys.stderr)
         return 1

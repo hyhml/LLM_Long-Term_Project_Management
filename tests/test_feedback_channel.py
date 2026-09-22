@@ -122,7 +122,7 @@ class FeedbackChannelTest(ProjectTestCase):
             expected=expected,
         )
 
-    def test_export_requires_both_consents_and_exact_attachment_approval(self) -> None:
+    def test_export_requires_recorded_consent_and_exact_attachment_approval(self) -> None:
         rejected = self.export(issue(approved=False), self.temp / "rejected.ltpm-feedback", expected=1)
         self.assertIn("not approved", rejected.stderr)
 
@@ -159,6 +159,23 @@ class FeedbackChannelTest(ProjectTestCase):
         self.assertTrue(inspected["classification_is_provisional"])
         self.assertFalse(inspected["automatic_upload"])
         self.assertEqual(inspected["attachments"], ["attachments/minimal.txt"])
+
+    def test_ordinary_feedback_can_record_one_approval_event(self) -> None:
+        ordinary = issue()
+        approved_at = "2026-09-22T00:02:00+00:00"
+        ordinary["consent"]["local_collection"] = {
+            "approved": True,
+            "approved_at": approved_at,
+            "scope": ["already-authorized conversation context; no new private collection"],
+        }
+        ordinary["consent"]["export"]["approved_at"] = approved_at
+        package = self.temp / "ordinary-one-approval.ltpm-feedback"
+        self.export(ordinary, package)
+        inspected = json.loads(run(FEEDBACK, "inspect", package).stdout)
+        self.assertEqual(
+            inspected["consent"]["local_collection"]["approved_at"],
+            inspected["consent"]["export"]["approved_at"],
+        )
 
     def test_verifier_rejects_unsafe_archive_members(self) -> None:
         unsafe = self.temp / "unsafe.ltpm-feedback"

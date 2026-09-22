@@ -141,7 +141,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `DATA-009` | high | Keep index data disposable and report retrieval coverage, authorization, exclusions, and freshness. | implemented | Index manifest and coverage-reporting search. |
 | `DATA-010` | low | Grow a broader personal knowledge base gradually without making it a prerequisite for project initialization. | planned | Current knowledge is project-local only. |
 | `DATA-011` | high | Directly load the compact project map, then read detailed records, source metadata, and materials only when the current node or task requires them. | implemented | Child entry loads `views/project-map.json` and routes selective formal-detail reads. |
-| `DATA-012` | high | Keep framework load priority, task scheduling priority, and objective/milestone/task hierarchy distinct; time horizon alone does not make a required milestone low priority. | planned | Runtime wording needs clarification; no data-schema change is intended. |
+| `DATA-012` | high | Keep framework load priority, task scheduling priority, and objective/milestone/task hierarchy distinct; time horizon alone does not make a required milestone low priority. | implemented | Structured runtime semantics, direct rules, data-model guidance, and tests; no data-schema change. |
 
 ### D. Cross-conversation workflow
 
@@ -155,7 +155,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `FLOW-006` | high | Package hashes prove integrity only, not truth, trust, acceptance, or sender identity. | implemented | Runtime rules and tests. |
 | `FLOW-007` | high | Permit future parallel exploration while preventing stale packages from silently overwriting newer state. | deferred | Stale revision rejection exists; parallel merge is intentionally not implemented. |
 | `FLOW-008` | low | Add package authenticity signatures in addition to integrity hashes. | deferred | Backlog item. |
-| `FLOW-009` | high | Whether requested by the user or triggered by the framework, prepare a concise `.llmpack` preview and create the final package only after one approval; integration still requires itemized decisions. | planned | v0.6.0 exports directly; the package format need not change. |
+| `FLOW-009` | high | Whether requested by the user or triggered by the framework, prepare a concise `.llmpack` preview and create the final package only after one approval; integration still requires itemized decisions. | implemented | Preview hash binds project, revision, inputs, destination, and exclusions; package v1 is unchanged. |
 
 ### E. Task handling and tool lifecycle
 
@@ -197,7 +197,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 |---|---|---|---|---|
 | `ENV-001` | high | Support Codex CLI as the initial runtime environment. | implemented | Current skill layout and scripts target Codex CLI. |
 | `ENV-002` | low | Adapt the framework for ChatGPT web. | deferred | Backlog item; no implementation. |
-| `ENV-003` | high | Explain that discovery is for selecting usable tools, obtain permission once, then search the bounded tool/skill/model scope and privately save the result. | partial | v0.6.0 detection and save exist but the ordinary interaction is not yet unified. |
+| `ENV-003` | high | Explain that discovery is for selecting usable tools, obtain permission once, then search the bounded tool/skill/model scope and privately save the result. | implemented | Approved `initialize` performs bounded discovery and one private atomic save; legacy diagnostics remain available. |
 | `ENV-004` | low | Detect and propose machine-profile updates automatically. | deferred | Backlog item. |
 | `ENV-005` | high | Do not export or copy the private machine profile into a project or handoff. | implemented | Runtime rule and release/package boundaries. |
 | `ENV-006` | high | Support project transfer between systems without assuming shared state; use portable project data and single-file handoffs with integrity checking. | implemented | Portable child instance metadata, compatibility inspection, thin-adapter upgrade, and verified handoffs require only a compatible installed total skill. |
@@ -220,7 +220,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 |---|---|---|---|---|
 | `FEED-001` | high | Trigger provisional feedback classification whenever the user actively raises a problem that may involve the framework, as well as for observed reusable failures, invariant violations, repeated ambiguity, unsafe allowances, blocked valid actions, or data-loss/privacy risk. | implemented | Total-skill high-priority rule, framework map trigger, conditional protocol, and thin-child route. |
 | `FEED-002` | high | Distinguish provisional cause classification from remediation scope; do not claim a framework defect before developer triage. | implemented | Versioned issue schema separates category, confidence, reasoning, suspected component, and remediation scope. |
-| `FEED-003` | high | Use one approval for an ordinary feedback preview built from authorized context; require one earlier bounded permission only when new private or external material must be read. | partial | v0.6.0 always uses two consent records; v0.6.1 must simplify interaction while retaining v1 intake compatibility. |
+| `FEED-003` | high | Use one approval for an ordinary feedback preview built from authorized context; require one earlier bounded permission only when new private or external material must be read. | implemented | Runtime protocol maps one ordinary approval event into feedback v1 audit fields; existing intake remains compatible. |
 | `FEED-004` | high | Export one integrity-checked feedback file without telemetry or automatic upload, and keep it distinct from project handoffs and project authority. | implemented | `.ltpm-feedback` protocol and deterministic exporter/verifier; user performs transport manually. |
 | `FEED-005` | high | Minimize and redact feedback; exclude secrets, private machine profiles, full conversations, whole project stores, and unrelated private paths by default while reporting coverage gaps. | implemented | Feedback protocol, schema, redaction report, package inspection, and synthetic tests. |
 | `FEED-006` | high | Keep real feedback external to the repository and runtime distribution; developer intake verifies, inspects, and quarantines it without executing attachments. | implemented | Developer-only intake refuses repository quarantine and release allowlist excludes the harness. |
@@ -271,8 +271,6 @@ The following gaps must remain visible in every framework planning session:
 1. **Complete child generation (`CHILD-001`–`CHILD-003`)**: the current initializer creates a valid skeleton but cannot yet consume the complete discussed project graph or create a formal initialization proposal/receipt.
 2. **Future project-data schema migration (`CHILD-008`)**: v0.5.0 intentionally keeps existing data schemas and refuses unsupported schemas; a future release must design and test the first real migration before claiming general migration support.
 3. **Parallel exploration (`FLOW-007`)**: high priority but intentionally deferred; stale transactions are rejected, while parallel rebase/merge is not implemented.
-4. **Machine-profile first-run orchestration (`ENV-003`)**: the tool exists, but the end-to-end user interaction needs more validation.
-5. **v0.6.1 concise interaction (`DATA-012`, `FLOW-009`, `ENV-003`, `FEED-003`)**: requirements are accepted; runtime implementation remains pending.
 
 Release isolation is no longer an open gap: `QUAL-003` and `QUAL-004` were completed by `v0.4.0` and reused successfully for the stable `v0.5.0` and `v0.6.0` releases.
 

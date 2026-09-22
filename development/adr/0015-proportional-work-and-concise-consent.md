@@ -3,7 +3,7 @@
 - Status: Accepted
 - Date: 2026-09-22
 - Target: `0.6.1`
-- Runtime effect: Not yet implemented
+- Implemented in: `0.6.1-dev.1`
 
 ## Context
 

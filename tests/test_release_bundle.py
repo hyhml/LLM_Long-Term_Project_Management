@@ -9,7 +9,7 @@ from support import ROOT, ProjectTestCase, read_json, run
 
 BUILDER = ROOT / "development" / "release" / "build_runtime.py"
 ALLOWLIST = ROOT / "development" / "release" / "runtime-allowlist.json"
-TEST_RELEASE = "0.6.0"
+TEST_RELEASE = "0.6.1"
 
 
 class RuntimeReleaseBundleTest(ProjectTestCase):
@@ -52,7 +52,7 @@ class RuntimeReleaseBundleTest(ProjectTestCase):
         self.assertEqual(report["file_count"], len(allowlist))
         self.assertEqual(report["release_version"], TEST_RELEASE)
         self.assertEqual(read_json(runtime / "references" / "framework-map.json")["framework_version"], TEST_RELEASE)
-        self.assertEqual(read_json(ROOT / "references" / "framework-map.json")["framework_version"], "0.6.0-dev.1")
+        self.assertEqual(read_json(ROOT / "references" / "framework-map.json")["framework_version"], "0.6.1-dev.1")
         for excluded in ("AGENTS.md", "development", "tests", "private"):
             self.assertFalse((runtime / excluded).exists())
         self.assertTrue(archive.is_file())

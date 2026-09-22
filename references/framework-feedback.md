@@ -34,18 +34,19 @@ Feedback is an optional side path. Report the suspected risk and ask whether to 
 
 Do not put framework-feedback evidence in `records/`, `state/`, `sources/`, `views/`, or the project index. Do not treat a feedback export as a project handoff. Use a user-selected external temporary location for drafts and the final package. Store a project-local pointer or note only through the ordinary project proposal and commit process when it has project value.
 
-## Two consent gates
+## Consent
 
-1. Before inspecting or copying diagnostic material, propose the minimum collection scope. State what will and will not be inspected. Collect only after the user approves that local scope.
-2. Before export, show every field and attachment proposed for inclusion plus the redaction report. Let the user accept, modify, or exclude each item. Export only after explicit approval of the final scope.
+When the draft uses only the current authorized conversation and facts the user supplied for feedback, prepare a minimized preview containing every included section and attachment, exclusions, redactions, retention choice, synthetic-derivative choice, destination, and the no-upload boundary. One approval of that preview authorizes local package creation.
 
-Collection approval does not authorize export, transmission, retention, or test derivation. Export approval does not upload anything. The user manually transfers the `.ltpm-feedback` file to the developer.
+If preparing the preview requires reading a new file, log, environment value, or other private/external source, first state the bounded purpose and scope and obtain one collection approval. After minimization and redaction, obtain the normal final preview approval. Collection approval does not authorize export, transmission, retention, or test derivation. Final approval does not upload anything. The user manually transfers the `.ltpm-feedback` file to the developer.
 
 Never include secrets, credentials, full conversations, whole project stores, the private machine profile, unrelated private paths, or unnecessary copyrighted material by default. Prefer pseudonymous project aliases and minimal excerpts. Report inspected scope, uninspected scope, and known evidence gaps.
 
 ## Feedback file
 
 Prepare `issue.json` and `redaction-report.json` according to [feedback-schema.json](feedback-schema.json). The issue records observed and expected behavior, reproduction, impact, provisional classification, remediation scope, coverage, privacy decisions, consent, and the requested outcome. The export approval must enumerate all eight content sections—`producer`, `problem`, `classification_proposal`, `context`, `evidence`, `privacy`, `request`, and `redaction-report`—after the user reviews them; the exporter rejects partial, duplicate, or undeclared section approval.
+
+For an ordinary one-approval interaction, record the same approval event in the existing v1 local-collection and export audit fields; state in `local_collection.scope` that only already authorized context was used and no new private collection occurred. When extra collection was needed, record its earlier approval separately. This preserves feedback v1 compatibility without exposing internal field mechanics as additional user prompts.
 
 The single-file export has extension `.ltpm-feedback` and contains:
 
