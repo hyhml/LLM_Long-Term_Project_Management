@@ -141,6 +141,14 @@
         "resolution-receipt"
       ],
       "runtime_effect": "implemented-in-0.6.0-dev.1"
+    },
+    {
+      "id": "ADR-0015",
+      "title": "Proportional framework work and concise consent",
+      "status": "accepted",
+      "path": "development/adr/0015-proportional-work-and-concise-consent.md",
+      "topics": ["change-weight", "consent", "environment", "packaging", "compatibility"],
+      "runtime_effect": "none-until-implemented-in-0.6.1"
     }
   ]
 }

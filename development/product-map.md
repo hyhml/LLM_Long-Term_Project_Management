@@ -72,7 +72,7 @@ The required user journey is:
 
 ```text
 install and explicitly invoke total skill
--> inspect/propose private machine capability profile
+-> explain tool discovery, obtain permission once, then detect and privately save available tools
 -> discuss one project's stable contract and completion standard
 -> discuss initial records, relations, sources, files, and high/low tasks
 -> present an itemized child-skill creation proposal
@@ -80,14 +80,14 @@ install and explicitly invoke total skill
 -> generate and validate the project-local child skill
 -> bind each ordinary project conversation to that child's root and project_id
 -> maintain or explore the project across conversations
--> package exploration into one verified handoff file
+-> prepare a package preview, obtain one approval, then create one verified handoff file
 -> unpack, propose, receive itemized user decisions, and commit one revision
 -> detect later total-skill updates
 -> propose and validate child architecture upgrade
 -> migrate project data separately when a schema change requires it
 -> generate upgrade and migration receipts
 -> when a user raises a possible framework problem, classify it provisionally
--> collect and export only the separately approved minimum feedback scope
+-> preview and export minimal feedback with one approval; ask once more only if new private material must be read
 -> let the user manually submit one verified feedback file to developer intake
 -> triage externally, derive only approved synthetic tests, fix, and return a resolution receipt
 ```
@@ -141,6 +141,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `DATA-009` | high | Keep index data disposable and report retrieval coverage, authorization, exclusions, and freshness. | implemented | Index manifest and coverage-reporting search. |
 | `DATA-010` | low | Grow a broader personal knowledge base gradually without making it a prerequisite for project initialization. | planned | Current knowledge is project-local only. |
 | `DATA-011` | high | Directly load the compact project map, then read detailed records, source metadata, and materials only when the current node or task requires them. | implemented | Child entry loads `views/project-map.json` and routes selective formal-detail reads. |
+| `DATA-012` | high | Keep framework load priority, task scheduling priority, and objective/milestone/task hierarchy distinct; time horizon alone does not make a required milestone low priority. | planned | Runtime wording needs clarification; no data-schema change is intended. |
 
 ### D. Cross-conversation workflow
 
@@ -154,6 +155,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `FLOW-006` | high | Package hashes prove integrity only, not truth, trust, acceptance, or sender identity. | implemented | Runtime rules and tests. |
 | `FLOW-007` | high | Permit future parallel exploration while preventing stale packages from silently overwriting newer state. | deferred | Stale revision rejection exists; parallel merge is intentionally not implemented. |
 | `FLOW-008` | low | Add package authenticity signatures in addition to integrity hashes. | deferred | Backlog item. |
+| `FLOW-009` | high | Whether requested by the user or triggered by the framework, prepare a concise `.llmpack` preview and create the final package only after one approval; integration still requires itemized decisions. | planned | v0.6.0 exports directly; the package format need not change. |
 
 ### E. Task handling and tool lifecycle
 
@@ -175,6 +177,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `GOV-005` | high | Make the assistant proactively classify and decompose work; ask the user only when ambiguity changes authority, persistence, or release. | partial | Classification control loop is specified and structurally enforced for task contracts; broader behavioral evidence is limited. |
 | `GOV-006` | high | Use this product map as the development-level authority for product intent and coverage. | implemented | ADR-0012 and developer `AGENTS.md`. |
 | `GOV-007` | high | Update this map when a user changes a requirement, priority, scope, or acceptance condition. | implemented | Developer `AGENTS.md`; ongoing compliance is required for every development change. |
+| `GOV-008` | high | Scale framework work by side effect and risk: design-only, runtime implementation, and release use progressively stronger records and validation. | implemented | Developer `AGENTS.md`, this control loop, and ADR-0015. |
 
 ### G. Testing, release, and data boundaries
 
@@ -194,7 +197,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 |---|---|---|---|---|
 | `ENV-001` | high | Support Codex CLI as the initial runtime environment. | implemented | Current skill layout and scripts target Codex CLI. |
 | `ENV-002` | low | Adapt the framework for ChatGPT web. | deferred | Backlog item; no implementation. |
-| `ENV-003` | high | Keep a private machine capability profile for CPU/resources, local models, installed skills, and callable tools; require user confirmation before saving. | partial | Detection and save tool exist; first-run orchestration remains instruction-driven. |
+| `ENV-003` | high | Explain that discovery is for selecting usable tools, obtain permission once, then search the bounded tool/skill/model scope and privately save the result. | partial | v0.6.0 detection and save exist but the ordinary interaction is not yet unified. |
 | `ENV-004` | low | Detect and propose machine-profile updates automatically. | deferred | Backlog item. |
 | `ENV-005` | high | Do not export or copy the private machine profile into a project or handoff. | implemented | Runtime rule and release/package boundaries. |
 | `ENV-006` | high | Support project transfer between systems without assuming shared state; use portable project data and single-file handoffs with integrity checking. | implemented | Portable child instance metadata, compatibility inspection, thin-adapter upgrade, and verified handoffs require only a compatible installed total skill. |
@@ -217,7 +220,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 |---|---|---|---|---|
 | `FEED-001` | high | Trigger provisional feedback classification whenever the user actively raises a problem that may involve the framework, as well as for observed reusable failures, invariant violations, repeated ambiguity, unsafe allowances, blocked valid actions, or data-loss/privacy risk. | implemented | Total-skill high-priority rule, framework map trigger, conditional protocol, and thin-child route. |
 | `FEED-002` | high | Distinguish provisional cause classification from remediation scope; do not claim a framework defect before developer triage. | implemented | Versioned issue schema separates category, confidence, reasoning, suspected component, and remediation scope. |
-| `FEED-003` | high | Require separate user approval for local evidence collection and for the exact exported fields and attachments. | implemented | Runtime protocol and exporter reject absent two-stage consent, attachment mismatch, or unconfirmed redaction review. |
+| `FEED-003` | high | Use one approval for an ordinary feedback preview built from authorized context; require one earlier bounded permission only when new private or external material must be read. | partial | v0.6.0 always uses two consent records; v0.6.1 must simplify interaction while retaining v1 intake compatibility. |
 | `FEED-004` | high | Export one integrity-checked feedback file without telemetry or automatic upload, and keep it distinct from project handoffs and project authority. | implemented | `.ltpm-feedback` protocol and deterministic exporter/verifier; user performs transport manually. |
 | `FEED-005` | high | Minimize and redact feedback; exclude secrets, private machine profiles, full conversations, whole project stores, and unrelated private paths by default while reporting coverage gaps. | implemented | Feedback protocol, schema, redaction report, package inspection, and synthetic tests. |
 | `FEED-006` | high | Keep real feedback external to the repository and runtime distribution; developer intake verifies, inspects, and quarantines it without executing attachments. | implemented | Developer-only intake refuses repository quarantine and release allowlist excludes the harness. |
@@ -243,6 +246,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `FLOW-003` | precedes | `FLOW-004`, `FLOW-005` | Package transport precedes proposal and accepted commit. |
 | `DATA-003` | depends_on | `DATA-004`, `DATA-008` | A trustworthy map depends on accepted records and typed relations. |
 | `DATA-011` | depends_on | `DATA-003`, `PROD-008` | Selective loading depends on a reliable derived map and framework load priorities. |
+| `DATA-012` | constrained_by | `DATA-007`, `PROD-008` | Scheduling priority remains separate from loading priority and goal hierarchy. |
 | `DATA-009` | constrained_by | `FLOW-006` | Retrieval coverage and package integrity must not become truth claims. |
 | `QUAL-001` | tests | `FLOW-001`, `DATA-002`, `DATA-003`, `FLOW-005` | Core tests protect cross-cutting product invariants. |
 | `QUAL-007` | tests | `ISOL-001`, `ISOL-002`, `ISOL-003`, `ISOL-004`, `ISOL-005`, `ISOL-006` | Isolation tests must exercise both deterministic storage boundaries and conversation-routing behavior. |
@@ -252,11 +256,13 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `ISOL-002` | constrains | `DATA-009`, `FLOW-003`, `FLOW-005` | Search, handoff, and commit must never infer a different project boundary. |
 | `ISOL-003` | constrains | `FLOW-001`, `TASK-001` | Role and task contracts operate within one explicitly active project conversation. |
 | `ISOL-004` | constrained_by | `FLOW-005`, `DATA-009` | Cross-project coordination retains separate transactions and reports retrieval coverage. |
+| `FLOW-009` | constrained_by | `FLOW-003`, `FLOW-004`, `QUAL-005` | Package approval authorizes creation, not later acceptance into project authority. |
 | `FEED-001` | uses | `GOV-001`, `GOV-005` | Runtime feedback begins with continuous, assistant-owned provisional classification. |
 | `FEED-003` | constrained_by | `QUAL-005`, `ENV-005` | Consent and minimization preserve private, project, and machine-data boundaries. |
 | `FEED-004` | constrained_by | `FLOW-006`, `ISOL-005` | Feedback integrity is not truth or identity, and the total skill remains project-stateless. |
 | `FEED-006` | depends_on | `PROD-003`, `QUAL-003`, `QUAL-005` | Safe intake depends on the developer/runtime boundary and external real-case storage. |
 | `FEED-007` | uses | `QUAL-002` | Test derivation follows the accepted regression policy rather than importing a real incident. |
+| `GOV-008` | constrains | `QUAL-001`, `QUAL-004` | Full implementation and release gates are used at their own stages rather than for every design edit. |
 
 ## 6. Current high-priority gaps
 
@@ -266,6 +272,7 @@ The following gaps must remain visible in every framework planning session:
 2. **Future project-data schema migration (`CHILD-008`)**: v0.5.0 intentionally keeps existing data schemas and refuses unsupported schemas; a future release must design and test the first real migration before claiming general migration support.
 3. **Parallel exploration (`FLOW-007`)**: high priority but intentionally deferred; stale transactions are rejected, while parallel rebase/merge is not implemented.
 4. **Machine-profile first-run orchestration (`ENV-003`)**: the tool exists, but the end-to-end user interaction needs more validation.
+5. **v0.6.1 concise interaction (`DATA-012`, `FLOW-009`, `ENV-003`, `FEED-003`)**: requirements are accepted; runtime implementation remains pending.
 
 Release isolation is no longer an open gap: `QUAL-003` and `QUAL-004` were completed by `v0.4.0` and reused successfully for the stable `v0.5.0` and `v0.6.0` releases.
 
@@ -278,6 +285,7 @@ These are not permission to choose silently:
 3. What transaction and rollback model should govern the first real project-data schema migration?
 
 ADR-0013 and the released v0.5.0 plan resolve the dependency, thin-entry, user-instruction, adapter rollback, and read-mostly coordination choices. ADR-0014 and released v0.6.0 add the consent-based external feedback loop without changing project-data schemas.
+ADR-0015 scales development work by risk and defines the minimal v0.6.1 interaction changes without freezing implementation details.
 
 ## 8. Development control loop
 
@@ -286,10 +294,11 @@ For every framework task:
 1. read this map;
 2. identify affected requirement IDs and relationships;
 3. classify framework/data and runtime/developer effects;
-4. state the acceptance evidence and current gap;
-5. read relevant ADRs and policies;
-6. update the product map if the user's requirement, priority, scope, or status changed;
-7. implement and test without declaring adjacent requirements complete;
-8. reconcile requirement status with actual evidence before release.
+4. choose design-only, implementation, or release weight from actual side effects and risk;
+5. state the acceptance evidence and current gap;
+6. read relevant ADRs and policies;
+7. update the product map if the user's requirement, priority, scope, or status changed;
+8. validate only to the selected weight unless a concrete risk requires escalation;
+9. reconcile requirement status with actual evidence before release.
 
 A script, template, rule, or test is evidence for a requirement, not proof that the full user-visible capability exists. Completion is assessed end to end.
