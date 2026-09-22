@@ -177,7 +177,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `GOV-005` | high | Make the assistant proactively classify and decompose work; ask the user only when ambiguity changes authority, persistence, or release. | partial | Classification control loop is specified and structurally enforced for task contracts; broader behavioral evidence is limited. |
 | `GOV-006` | high | Use this product map as the development-level authority for product intent and coverage. | implemented | ADR-0012 and developer `AGENTS.md`. |
 | `GOV-007` | high | Update this map when a user changes a requirement, priority, scope, or acceptance condition. | implemented | Developer `AGENTS.md`; ongoing compliance is required for every development change. |
-| `GOV-008` | high | Scale framework work by side effect and risk: design-only, runtime implementation, and release use progressively stronger records and validation. | implemented | Developer `AGENTS.md`, this control loop, and ADR-0015. |
+| `GOV-008` | high | Scale framework work by side effect and risk, plan one evidence-producing gate per claim, reuse still-valid evidence, and rerun only gates invalidated by later changes. | implemented | Developer `AGENTS.md`, this control loop, runtime release policy, and ADR-0015. |
 
 ### G. Testing, release, and data boundaries
 
@@ -262,7 +262,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `FEED-004` | constrained_by | `FLOW-006`, `ISOL-005` | Feedback integrity is not truth or identity, and the total skill remains project-stateless. |
 | `FEED-006` | depends_on | `PROD-003`, `QUAL-003`, `QUAL-005` | Safe intake depends on the developer/runtime boundary and external real-case storage. |
 | `FEED-007` | uses | `QUAL-002` | Test derivation follows the accepted regression policy rather than importing a real incident. |
-| `GOV-008` | constrains | `QUAL-001`, `QUAL-004` | Full implementation and release gates are used at their own stages rather than for every design edit. |
+| `GOV-008` | constrains | `QUAL-001`, `QUAL-004` | Validation strength follows the stage; each claim uses one still-valid gate result, and only invalidated gates are rerun. |
 
 ## 6. Current high-priority gaps
 
@@ -293,7 +293,7 @@ For every framework task:
 2. identify affected requirement IDs and relationships;
 3. classify framework/data and runtime/developer effects;
 4. choose design-only, implementation, or release weight from actual side effects and risk;
-5. state the acceptance evidence and current gap;
+5. state the acceptance evidence and current gap; for releases, map each claim to one gate and define what would invalidate it;
 6. read relevant ADRs and policies;
 7. update the product map if the user's requirement, priority, scope, or status changed;
 8. validate only to the selected weight unless a concrete risk requires escalation;
