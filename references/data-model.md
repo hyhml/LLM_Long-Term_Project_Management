@@ -19,7 +19,7 @@ A non-null `current_focus.task_contract` uses `ltpm-task-contract/v1`. Besides e
 
 Framework or external regression/evaluation work is not stored as a project task contract; route it to its own authority boundary.
 
-`state/task-board.json` owns task priority and lifecycle status. It has exactly `high` and `low` lists; each entry contains a `task_id` pointing to a formal task record and a status of `pending`, `active`, `blocked`, or `done`.
+`state/task-board.json` owns task scheduling priority and lifecycle status. It has exactly `high` and `low` lists: high is foreground/current scheduling and low is background/later scheduling. Each entry contains a `task_id` pointing to a formal task record and a status of `pending`, `active`, `blocked`, or `done`. This is separate from framework load priority and from objective/milestone/task relations. A required later milestone does not become low priority merely because it is temporally distant.
 
 ## Records and relations
 

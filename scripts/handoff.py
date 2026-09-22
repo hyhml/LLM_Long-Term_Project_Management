@@ -126,19 +126,22 @@ def parse_artifact(spec: str) -> tuple[Path, str]:
     return source, archive_name
 
 
-def export_package(args: argparse.Namespace) -> dict:
+def package_plan(args: argparse.Namespace) -> tuple[dict, dict, dict, dict[str, bytes | Path], Path]:
     project_skill = args.project_skill.expanduser().resolve()
     binding = require_binding(project_skill, write=True)
     project_state = json.loads((project_skill / "state" / "project.json").read_text(encoding="utf-8"))
-    handoff = validate_handoff(json.loads(args.handoff.expanduser().resolve().read_text(encoding="utf-8")))
+    handoff_path = args.handoff.expanduser().resolve()
+    handoff = validate_handoff(json.loads(handoff_path.read_text(encoding="utf-8")))
     handoff_bytes = canonical_json(handoff)
 
     entries: dict[str, bytes | Path] = {"handoff.json": handoff_bytes}
+    sources = [{"source": str(handoff_path), "archive_path": "handoff.json"}]
     for spec in args.artifact:
         source, archive_name = parse_artifact(spec)
         if archive_name in entries:
             raise PackageError(f"duplicate archive destination: {archive_name}")
         entries[archive_name] = source
+        sources.append({"source": str(source), "archive_path": archive_name})
 
     manifest_entries = []
     for name in sorted(entries):
@@ -155,23 +158,53 @@ def export_package(args: argparse.Namespace) -> dict:
     if sum(item["size"] for item in manifest_entries) > MAX_TOTAL_BYTES:
         raise PackageError(f"package payload exceeds {MAX_TOTAL_BYTES} bytes")
 
+    output = args.output.expanduser().resolve()
+    if output.exists():
+        raise PackageError(f"output already exists: {output}")
+    if output.suffix != ".llmpack":
+        raise PackageError("output filename must end with .llmpack")
+    plan = {
+        "package_type": "llmpack",
+        "framework_version": binding["manager_framework_version"],
+        "entry_protocol": binding["entry_protocol"],
+        "project_id": project_state["project_id"],
+        "task_id": handoff["task_id"],
+        "base_revision": project_state["revision"],
+        "destination": str(output),
+        "sources": sources,
+        "entries": manifest_entries,
+        "privacy_exclusions": ["private machine profile", "credentials", "unlisted files"],
+        "local_creation_only": True,
+        "automatic_upload": False,
+    }
+    return plan, binding, handoff, entries, output
+
+
+def preview_package(args: argparse.Namespace) -> dict:
+    plan, _, _, _, _ = package_plan(args)
+    return {**plan, "preview_sha256": sha256_bytes(canonical_json(plan))}
+
+
+def export_package(args: argparse.Namespace) -> dict:
+    plan, binding, handoff, entries, output = package_plan(args)
+    expected_approval = sha256_bytes(canonical_json(plan))
+    if not args.approved_preview_sha256:
+        raise PackageError("approved preview SHA-256 is required before package creation")
+    if args.approved_preview_sha256 != expected_approval:
+        raise PackageError("approved preview SHA-256 does not match the current package preview")
+
     manifest = {
         "format": FORMAT,
         "schema_version": SCHEMA_VERSION,
         "framework_version": binding["manager_framework_version"],
         "entry_protocol": binding["entry_protocol"],
         "package_id": f"pkg-{uuid.uuid4()}",
-        "project_id": project_state["project_id"],
+        "project_id": plan["project_id"],
         "task_id": handoff["task_id"],
-        "base_revision": project_state["revision"],
+        "base_revision": plan["base_revision"],
         "created_at": dt.datetime.now(dt.timezone.utc).replace(microsecond=0).isoformat(),
-        "entries": manifest_entries,
+        "entries": plan["entries"],
     }
-    output = args.output.expanduser().resolve()
-    if output.exists():
-        raise PackageError(f"output already exists: {output}")
-    if output.suffix != ".llmpack":
-        raise PackageError("output filename must end with .llmpack")
     output.parent.mkdir(parents=True, exist_ok=True)
 
     with tempfile.NamedTemporaryFile(dir=output.parent, prefix=".llmpack-", delete=False) as temporary:
@@ -185,11 +218,18 @@ def export_package(args: argparse.Namespace) -> dict:
                     archive.writestr(name, value)
                 else:
                     archive.write(value, arcname=name)
+        # Verify the temporary archive against the approved manifest before it becomes final.
+        read_verified(temporary_path)
         temporary_path.replace(output)
     finally:
         if temporary_path.exists():
             temporary_path.unlink()
-    return {**manifest, "path": str(output), "package_sha256": sha256_file(output)}
+    return {
+        **manifest,
+        "path": str(output),
+        "package_sha256": sha256_file(output),
+        "approved_preview_sha256": expected_approval,
+    }
 
 
 def read_verified(path: Path) -> tuple[dict, dict[str, bytes]]:
@@ -309,11 +349,17 @@ def unpack_package(path: Path, destination: Path) -> dict:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
+    def add_package_arguments(command_parser: argparse.ArgumentParser) -> None:
+        command_parser.add_argument("--project-skill", type=Path, required=True)
+        command_parser.add_argument("--handoff", type=Path, required=True)
+        command_parser.add_argument("--output", type=Path, required=True)
+        command_parser.add_argument("--artifact", action="append", default=[])
+
+    preview_parser = subparsers.add_parser("preview")
+    add_package_arguments(preview_parser)
     export_parser = subparsers.add_parser("export")
-    export_parser.add_argument("--project-skill", type=Path, required=True)
-    export_parser.add_argument("--handoff", type=Path, required=True)
-    export_parser.add_argument("--output", type=Path, required=True)
-    export_parser.add_argument("--artifact", action="append", default=[])
+    add_package_arguments(export_parser)
+    export_parser.add_argument("--approved-preview-sha256")
     verify_parser = subparsers.add_parser("verify")
     verify_parser.add_argument("package", type=Path)
     unpack_parser = subparsers.add_parser("unpack")
@@ -328,7 +374,9 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     try:
-        if args.command == "export":
+        if args.command == "preview":
+            result = preview_package(args)
+        elif args.command == "export":
             result = export_package(args)
         elif args.command == "verify":
             result = verify_package(args.package.expanduser().resolve())

@@ -23,16 +23,28 @@ Package when the user requests handoff, when material progress changes the next 
 
 Use the schema in `references/handoff-schema.json`. `proposed_changes` are proposals only. Every proposal needs a stable `change_id`, an operation, a target, a reason, and the proposed value.
 
-Export a single file:
+Prepare a preview first:
 
 ```bash
-python scripts/handoff.py export \
+python scripts/handoff.py preview \
   --project-skill /absolute/project/.agents/skills/example-project \
   --handoff /absolute/path/handoff-draft.json \
   --output /absolute/path/task-name.llmpack
 ```
 
-Add artifacts with repeated `--artifact SOURCE=artifacts/RELATIVE_PATH` arguments. Symlinks and non-regular files are rejected. Do not include the private machine profile or credentials.
+Add artifacts with repeated `--artifact SOURCE=artifacts/RELATIVE_PATH` arguments. The preview shows the bound project, task, revision, destination, source and archive paths, sizes, hashes, exclusions, and no-upload boundary. It does not create the final package.
+
+Show the concise preview to the user. After one approval of that exact preview, run the same arguments with `export` and add the returned preview hash:
+
+```bash
+python scripts/handoff.py export \
+  --project-skill /absolute/project/.agents/skills/example-project \
+  --handoff /absolute/path/handoff-draft.json \
+  --output /absolute/path/task-name.llmpack \
+  --approved-preview-sha256 <preview_sha256>
+```
+
+The exporter refuses a missing or stale approval hash. Symlinks and non-regular files are rejected. Do not include the private machine profile or credentials. Package approval authorizes local creation only; it does not accept any proposed change during later integration.
 
 The current package schema limits each entry to 256 MiB, the total uncompressed payload to 512 MiB, and the payload to 1,000 entries. Split larger evidence outside the package and include an accepted reference instead.
 

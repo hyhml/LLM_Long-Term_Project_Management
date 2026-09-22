@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "framework_version": "0.6.0",
+  "framework_version": "0.6.1",
   "compatibility": {
     "current_entry_protocol": 1,
     "supported_entry_protocols": [1],
@@ -20,6 +20,9 @@
   "priority_semantics": {
     "load_priority": ["high", "low"],
     "task_priority": ["high", "low"],
+    "task_priority_scope": "foreground-background-scheduling",
+    "goal_hierarchy": ["objective", "milestone", "task"],
+    "time_horizon_sets_task_priority": false,
     "status": ["active", "deferred", "done"]
   },
   "roles": [
@@ -110,7 +113,7 @@
     {
       "id": "consent-based-framework-feedback",
       "load_priority": "high",
-      "rule": "A user-raised concern that may involve the framework triggers provisional classification, but local evidence collection and exact-scope export require separate approval; there is no automatic upload, and real feedback remains external to project records and framework releases."
+      "rule": "A user-raised concern that may involve the framework triggers provisional classification. Already authorized context needs one final preview approval; reading new private or external material first needs one bounded collection approval. There is no automatic upload, and real feedback remains external to project records and framework releases."
     }
   ],
   "capabilities": [
