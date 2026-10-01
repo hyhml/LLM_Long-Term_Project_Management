@@ -1,0 +1,44 @@
+{
+  "schema": "ltpm-runtime-release-receipt/v1",
+  "release_version": "0.7.0",
+  "released_at": "2026-10-01T15:23:55Z",
+  "source": {
+    "branch": "development",
+    "revision": "286cf44d260d2834ecbe7cfac7904c58047031cb",
+    "framework_version": "0.7.0-dev.1"
+  },
+  "runtime": {
+    "branch": "main",
+    "commit": "b7b99447f1e87ccba4ff930a6d6c53115a3e2f16",
+    "tag": "v0.7.0",
+    "file_count": 33,
+    "total_bytes": 221595,
+    "tree_sha256": "223ba741708257e1adc5a126b1f6b099d085f7381789eece3f6c861909431679"
+  },
+  "archive": {
+    "name": "long-term-project-manager-v0.7.0.zip",
+    "size": 73545,
+    "sha256": "dc6bed90f7c23e077e43b630d244f7ae237a3744427c9f4d5e2873195e7139fe",
+    "url": "https://github.com/hyhml/LLM_Long-Term_Project_Management/releases/download/v0.7.0/long-term-project-manager-v0.7.0.zip"
+  },
+  "validation": {
+    "developer_tests": "43 passed",
+    "development_skill": "passed",
+    "runtime_skill": "passed",
+    "generated_child_project": "passed",
+    "dual_view_render_and_transaction_smoke": "passed",
+    "pre_v0.7.0_child_compatibility": "passed",
+    "installed_runtime": "0.7.0 validated",
+    "existing_v0.6.1_child_compatibility": "compatible for read and write",
+    "remote_refs_and_release_asset": "matched"
+  },
+  "excluded_from_runtime": [
+    "AGENTS.md",
+    "development/",
+    "tests/",
+    "private/",
+    "__pycache__/",
+    "*.pyc"
+  ],
+  "release_url": "https://github.com/hyhml/LLM_Long-Term_Project_Management/releases/tag/v0.7.0"
+}

@@ -2,7 +2,7 @@
 
 - Scope: development-only product intent and coverage map
 - Authority: user-confirmed requirements, organized for framework development
-- Updated: 2026-10-01
+- Updated: 2026-10-02
 - Runtime distribution: excluded from `main` and user release archives
 
 ## How to use this map
@@ -143,7 +143,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `DATA-010` | low | Grow a broader personal knowledge base gradually without making it a prerequisite for project initialization. | planned | Current knowledge is project-local only. |
 | `DATA-011` | high | Directly load the compact project map, then read detailed records, source metadata, and materials only when the current node or task requires them. | implemented | Child entry loads `views/project-map.json` and routes selective formal-detail reads. |
 | `DATA-012` | high | Keep framework load priority, task scheduling priority, and objective/milestone/task hierarchy distinct; time horizon alone does not make a required milestone low priority. | implemented | Structured runtime semantics, direct rules, data-model guidance, and tests; no data-schema change. |
-| `DATA-013` | high | Generate a deterministic human-readable project map beside the compact machine map, from the same formal revision, without creating a second authority or invalidating older compatible children. | partial | Implemented and tested in development `0.7.0-dev.1`; no user runtime release has been authorized yet. |
+| `DATA-013` | high | Generate a deterministic human-readable project map beside the compact machine map, from the same formal revision, without creating a second authority or invalidating older compatible children. | implemented | Released in `v0.7.0`; exact-artifact initialization, dual-view transaction, legacy compatibility, and freshness tests passed. |
 
 ### D. Cross-conversation workflow
 
@@ -188,7 +188,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `QUAL-001` | high | Protect the original six core invariants: cross-conversation loop, authority boundary, decision/revision transaction, project identity, rebuildability, and information boundary. | implemented | 23 original core tests remain passing. |
 | `QUAL-002` | high | Add regression tests only for reusable defects under an itemized proposal; keep real cases and gold data external. | implemented | ADR-0010 and regression policy. |
 | `QUAL-003` | high | Keep developer tests, ADRs, policies, and release tooling out of user distributions. | implemented | Exact runtime allowlist and release tests. |
-| `QUAL-004` | high | Build `main` and release archives from a whitelist, fail on unclassified files, and validate the generated runtime and child skill. | implemented | ADR-0011, deterministic builder, release tests, and receipts through `v0.6.2`. |
+| `QUAL-004` | high | Build `main` and release archives from a whitelist, fail on unclassified files, and validate the generated runtime and child skill. | implemented | ADR-0011, deterministic builder, release tests, and receipts through `v0.7.0`. |
 | `QUAL-005` | high | Do not store project data, real regression/evaluation data, secrets, or unrelated private paths in framework releases. | implemented | Release allowlist, private ignore, and policies. |
 | `QUAL-006` | low | Domain-specific educational safety and adversarial test suites. | out-of-scope | May belong to a future educational child skill, not the generic framework core. |
 | `QUAL-007` | high | Add a multi-project isolation invariant group covering root/identity mismatch, retrieval and package boundaries, framework-update preservation, conversation switching, and explicit coordination. | implemented | Five synthetic tests cover separate search, explicit coordination, mismatch/ambiguity, session switch, handoff rejection, upgrade preservation, and rollback. |
@@ -277,7 +277,7 @@ The following gaps must remain visible in every framework planning session:
 2. **Future project-data schema migration (`CHILD-008`)**: v0.5.0 intentionally keeps existing data schemas and refuses unsupported schemas; a future release must design and test the first real migration before claiming general migration support.
 3. **Parallel exploration (`FLOW-007`)**: high priority but intentionally deferred; stale transactions are rejected, while parallel rebase/merge is not implemented.
 
-Release isolation is no longer an open gap: `QUAL-003` and `QUAL-004` were completed by `v0.4.0` and reused successfully through the stable `v0.6.2` release.
+Release isolation is no longer an open gap: `QUAL-003` and `QUAL-004` were completed by `v0.4.0` and reused successfully through the stable `v0.7.0` release.
 
 ## 7. Open design questions requiring user discussion
 
