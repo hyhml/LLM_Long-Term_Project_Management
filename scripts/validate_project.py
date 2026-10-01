@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 from project_binding import CURRENT_DATA_SCHEMAS, INSTANCE_SCHEMA, MANAGER_SKILL, managed_hashes
-from render_project_views import build_project_map, load_inputs, load_object
+from render_project_views import build_project_map, build_project_markdown, load_inputs, load_object
 
 
 REQUIRED = (
@@ -352,9 +352,17 @@ def validate(
 
     try:
         expected_view = build_project_map(project, board, store, sources)
-        if view != expected_view:
+        legacy_view = dict(expected_view)
+        legacy_view.pop("authority", None)
+        human_view_path = root / "views" / "project-map.md"
+        legacy_without_human_view = not human_view_path.exists() and view == legacy_view
+        if view != expected_view and not legacy_without_human_view:
             errors.append("views/project-map.json is stale or manually edited; regenerate it from formal data")
-    except ValueError as exc:
+        if human_view_path.exists():
+            expected_markdown = build_project_markdown(project, board, store, sources, expected_view)
+            if human_view_path.read_text(encoding="utf-8") != expected_markdown:
+                errors.append("views/project-map.md is stale or manually edited; regenerate it from formal data")
+    except (OSError, ValueError) as exc:
         errors.append(str(exc))
     return errors
 
@@ -369,7 +377,20 @@ def main() -> int:
     if errors:
         print(json.dumps({"valid": False, "errors": errors}, ensure_ascii=False, indent=2))
         return 1
-    print(json.dumps({"valid": True, "skill_root": str(root)}, ensure_ascii=False, indent=2))
+    print(
+        json.dumps(
+            {
+                "valid": True,
+                "skill_root": str(root),
+                "human_readable_view": (
+                    "validated" if (root / "views" / "project-map.md").is_file()
+                    else "missing-compatible-rebuildable"
+                ),
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
     return 0
 
 

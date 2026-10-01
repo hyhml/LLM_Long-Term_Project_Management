@@ -30,6 +30,6 @@ Also present candidate tools separately with their purpose, validation, dependen
 
 ## Commit phase
 
-Before writing, summarize the exact accepted operations. Then follow `references/commit.md`: edit only the prepared candidate, commit one accepted batch through the transaction tool, and preserve its receipt. Never edit `views/project-map.json` or `index/` as the source of a change. Record rejected or deferred ideas formally only if the user separately accepts that archival change; otherwise leave them in `work/` or the package.
+Before writing, summarize the exact accepted operations. Then follow `references/commit.md`: edit only the prepared candidate, commit one accepted batch through the transaction tool, and preserve its receipt. Never edit either file under `views/` or `index/` as the source of a change. Record rejected or deferred ideas formally only if the user separately accepts that archival change; otherwise leave them in `work/` or the package.
 
 Archive the original `.llmpack` plus an integration receipt containing the package ID, old and new revisions, each change decision, and the user's tool-retention decisions.

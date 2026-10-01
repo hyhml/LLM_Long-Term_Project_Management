@@ -12,7 +12,7 @@ This is the thin, explicitly invoked entry for project `@@PROJECT_ID@@`, generat
 1. Read `framework/instance.json`, `project-instructions.md`, and `views/project-map.json`.
 2. Locate the explicitly installed, compatible `long-term-project-manager`; read its `SKILL.md` and high-priority framework map rules. Shared protocols and tools come from that total skill, not from copied project-local framework files.
 3. Verify that the canonical child root, immutable `project_id`, project revision, entry protocol, and managed adapter hashes form a compatible project binding. If compatibility is uncertain, permit inspection but block formal writes and route to the total skill's upgrade procedure.
-4. Treat `views/project-map.json` as a directly loaded, derived navigation view. `state/`, `records/`, and `sources/` are authoritative; `work/` is pending. Never change project state through `views/` or `index/`.
+4. Treat `views/project-map.json` as the directly loaded derived navigation view. Use `views/project-map.md` when the user asks to inspect or review the project map; do not load both by default. `state/`, `records/`, and `sources/` are authoritative; `work/` is pending. Never change project state through `views/` or `index/`.
 5. Read formal detail only for the current nodes or task. Do not load another project's state unless the user explicitly requests cross-project coordination.
 
 ## Project binding

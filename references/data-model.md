@@ -47,4 +47,4 @@ A relation requires stable `id`, `from`, `type`, `to`, and `confirmation_status:
 
 ## Derived data
 
-`views/project-map.json` is generated from the formal files. `index/manifest.json` reports index status and coverage. Edit neither as project authority.
+`views/project-map.json` and `views/project-map.md` are deterministic projections of the same formal files and revision. JSON is the compact directly loaded machine/LLM view; Markdown groups objective, task, record, source, and relation navigation for human review. Both identify themselves as derived and non-authoritative. The Markdown view reports the current revision and receipt directory but does not infer a latest-change summary. Existing children without the Markdown sibling remain compatible until the next explicit render or accepted transaction creates it. `index/manifest.json` reports index status and coverage. Edit none of these derived files as project authority.

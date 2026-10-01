@@ -32,10 +32,12 @@ SUPPORT_FILES = (
     "project-instructions.md",
     "framework/instance.json",
     "views/project-map.json",
+    "views/project-map.md",
     "index/manifest.json",
 )
 CANDIDATE_FILES = AUTHORITATIVE_FILES + (
     "views/project-map.json",
+    "views/project-map.md",
     "index/manifest.json",
 )
 CLEANUP_PREVIEW_SCHEMA = "ltpm-transaction-cleanup-preview/v1"
@@ -116,6 +118,8 @@ def prepare(skill_root: Path, operation_id: str) -> dict:
     candidate = root / "candidate"
     for relative in CANDIDATE_FILES:
         source = skill_root / relative
+        if relative == "views/project-map.md" and not source.exists():
+            continue
         destination = candidate / relative
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, destination)
@@ -143,6 +147,8 @@ def validate_candidate(skill_root: Path, candidate: Path) -> list[str]:
         validation_root = Path(temporary_text) / "candidate"
         for relative in CANDIDATE_FILES:
             source = candidate / relative
+            if relative == "views/project-map.md" and not source.exists():
+                continue
             destination = validation_root / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, destination)
@@ -373,9 +379,16 @@ def commit(skill_root: Path, operation_id: str, decisions_path: Path) -> dict:
     if candidate_errors:
         raise TransactionError(f"revisioned candidate is invalid: {'; '.join(candidate_errors)}")
 
-    publish_files = AUTHORITATIVE_FILES + ("views/project-map.json", "index/manifest.json")
+    publish_files = AUTHORITATIVE_FILES + (
+        "views/project-map.json",
+        "views/project-map.md",
+        "index/manifest.json",
+    )
     new_bytes = {relative: (candidate / relative).read_bytes() for relative in publish_files}
-    old_bytes = {relative: (skill_root / relative).read_bytes() for relative in publish_files}
+    old_bytes = {
+        relative: (skill_root / relative).read_bytes() if (skill_root / relative).exists() else None
+        for relative in publish_files
+    }
     receipt = {
         "schema": "ltpm-transaction-receipt/v1",
         "operation_id": operation_id,
@@ -399,7 +412,10 @@ def commit(skill_root: Path, operation_id: str, decisions_path: Path) -> dict:
         write_atomic(receipt_path, encoded(receipt))
     except Exception:
         for relative in publish_files:
-            write_atomic(skill_root / relative, old_bytes[relative])
+            if old_bytes[relative] is None:
+                (skill_root / relative).unlink(missing_ok=True)
+            else:
+                write_atomic(skill_root / relative, old_bytes[relative])
         if receipt_path.exists():
             receipt_path.unlink()
         raise

@@ -252,6 +252,10 @@ def main() -> int:
                 "revision": 0,
                 "binding_status": binding["status"],
                 "entry_protocol": binding["entry_protocol"],
+                "views": {
+                    "machine": str(skill_root / "views" / "project-map.json"),
+                    "human_review": str(skill_root / "views" / "project-map.md"),
+                },
                 "discovery": discovery_result(root, args.skill_name),
             },
             indent=2,
