@@ -61,11 +61,11 @@ state/     stable project contract, revision, current focus, and task board
 records/   accepted typed records and relations
 sources/   accepted source registry and access scope
 work/      explorations and candidate tools; not yet accepted
-views/     generated, directly loaded navigation
+views/     generated machine navigation and human-review map
 index/     disposable retrieval state with explicit coverage metadata
 packages/  handoffs and integration receipts
 ```
 
-`views/project-map.json` is generated from formal data in `state/`, `records/`, and `sources/`. Do not edit it to change project state. Report the created path, validation result, initial revision, discovery status, launch directory, and explicit invocation name. Do not claim that the project is initialized if validation fails.
+`views/project-map.json` and `views/project-map.md` are generated from the same formal data in `state/`, `records/`, and `sources/`. The JSON view is directly loaded by the child; the Markdown view is for user review. Both declare their revision and non-authoritative status. Do not edit either to change project state. Report both created paths, validation result, initial revision, discovery status, launch directory, and explicit invocation name. Do not claim that the project is initialized if validation fails.
 
 The child does not copy the total skill's conditional protocols. On invocation it uses `framework/instance.json` to bind this project and delegates compatible shared behavior to the installed `long-term-project-manager`. Keep `project-instructions.md` project-owned so later framework updates preserve it.

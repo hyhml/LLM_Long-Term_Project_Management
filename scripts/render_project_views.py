@@ -16,6 +16,12 @@ PROJECT_SCHEMA = "ltpm-project-state/v2"
 TASK_BOARD_SCHEMA = "ltpm-task-board/v1"
 STORE_SCHEMA = "ltpm-record-store/v2"
 SOURCE_SCHEMA = "ltpm-source-registry/v1"
+FORMAL_INPUTS = (
+    "../state/project.json",
+    "../state/task-board.json",
+    "../records/store.json",
+    "../sources/registry.json",
+)
 
 
 def load_object(path: Path) -> dict:
@@ -156,15 +162,15 @@ def build_project_map(project: dict, board: dict, store: dict, sources: dict) ->
         "schema": VIEW_SCHEMA,
         "project_id": project.get("project_id"),
         "project_name": project.get("project_name"),
+        "authority": {
+            "status": "derived-non-authoritative",
+            "source_of_truth": list(FORMAL_INPUTS),
+            "write_policy": "regenerate from formal data; do not edit as project authority",
+        },
         "source": {
             "project_revision": revision,
             "generator": "render_project_views.py/v3",
-            "inputs": [
-                "../state/project.json",
-                "../state/task-board.json",
-                "../records/store.json",
-                "../sources/registry.json",
-            ],
+            "inputs": list(FORMAL_INPUTS),
         },
         "objective_contract": contract,
         "current_focus": project.get("current_focus"),
@@ -180,6 +186,156 @@ def build_project_map(project: dict, board: dict, store: dict, sources: dict) ->
             "handoffs": "../packages/",
         },
     }
+
+
+def inline(value: object) -> str:
+    if value is None or value == "":
+        return "(not set)"
+    text = " ".join(str(value).split())
+    text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    return (
+        text.replace("\\", "\\\\")
+        .replace("`", "&#96;")
+        .replace("*", "\\*")
+        .replace("_", "\\_")
+        .replace("[", "\\[")
+        .replace("]", "\\]")
+    )
+
+
+def bullet_lines(values: object, empty: str = "(none)") -> list[str]:
+    if not isinstance(values, list) or not values:
+        return [f"- {empty}"]
+    return [f"- {inline(value)}" for value in values]
+
+
+def build_project_markdown(project: dict, board: dict, store: dict, sources: dict, view: dict) -> str:
+    """Build a compact human-review view from the same formal inputs as the JSON map."""
+    contract = project["objective_contract"]
+    current_focus = project.get("current_focus") or {}
+    task_contract = current_focus.get("task_contract") or {}
+    records = store.get("records", [])
+    relations = store.get("relations", [])
+    registered_sources = sources.get("sources", [])
+    title_by_id = {
+        node["id"]: node.get("title") or node["id"]
+        for node in view["nodes"]
+    }
+
+    lines = [
+        f"# Project map: {inline(project.get('project_name'))}",
+        "",
+        "> **Derived, non-authoritative view.** Regenerate this file from the formal project data; "
+        "do not edit it to change project facts.",
+        "",
+        "## Status",
+        "",
+        f"- Project ID: `{inline(project.get('project_id'))}`",
+        f"- Project revision: `{project.get('revision')}`",
+        f"- Objective revision: `{contract.get('objective_revision')}`",
+        f"- Active task: `{inline(current_focus.get('active_task_id'))}`",
+        f"- Active task expected result: {inline(task_contract.get('expected_result'))}",
+        "- Formal inputs:",
+        *[f"  - `{path}`" for path in FORMAL_INPUTS],
+        "",
+        "## Objective",
+        "",
+        inline(contract.get("objective")),
+    ]
+    for heading, field in (
+        ("Scope", "scope"),
+        ("Non-goals", "non_goals"),
+        ("Assumptions", "assumptions"),
+        ("Evidence standard", "evidence_standard"),
+        ("Completion standard", "completion_standard"),
+    ):
+        lines.extend(["", f"### {heading}", "", *bullet_lines(contract.get(field))])
+
+    lines.extend(["", "## Tasks"])
+    for priority in ("high", "low"):
+        lines.extend(["", f"### {priority.capitalize()} priority", ""])
+        tasks = view["tasks"][priority]
+        if not tasks:
+            lines.append("- (none)")
+        else:
+            lines.extend(
+                f"- `{inline(task['task_id'])}` [{inline(task.get('status'))}] {inline(task.get('title'))}"
+                for task in tasks
+            )
+
+    kind_order = ("decision", "attempt", "risk", "evidence", "claim", "review", "question", "artifact")
+    kind_labels = {
+        "decision": "Decisions",
+        "attempt": "Attempts",
+        "risk": "Risks",
+        "evidence": "Evidence",
+        "claim": "Claims",
+        "review": "Reviews",
+        "question": "Questions",
+        "artifact": "Artifacts",
+    }
+    grouped: dict[str, list[dict]] = {}
+    for record in records:
+        if record.get("kind") == "task":
+            continue
+        grouped.setdefault(str(record.get("kind")), []).append(record)
+    lines.extend(["", "## Formal records"])
+    ordered_kinds = [kind for kind in kind_order if kind in grouped]
+    ordered_kinds.extend(sorted(kind for kind in grouped if kind not in kind_order))
+    if not ordered_kinds:
+        lines.extend(["", "- (none)"])
+    for kind in ordered_kinds:
+        lines.extend(["", f"### {kind_labels.get(kind, inline(kind))}", ""])
+        for record in grouped[kind]:
+            outcome = record.get("content", {}).get("outcome") if isinstance(record.get("content"), dict) else None
+            outcome_text = f" [outcome: {inline(outcome)}]" if outcome else ""
+            lines.append(f"- `{inline(record.get('id'))}`{outcome_text} {inline(record.get('title'))}")
+
+    lines.extend(["", "## Sources", ""])
+    if not registered_sources:
+        lines.append("- (none)")
+    else:
+        for source in registered_sources:
+            lines.append(
+                f"- `{inline(source.get('source_id'))}` [{inline(source.get('source_type'))}] "
+                f"{inline(source.get('title'))} — access: {inline(source.get('access_scope'))}"
+            )
+
+    lines.extend(["", "## Relations", ""])
+    if not relations:
+        lines.append("- (none)")
+    else:
+        for relation in relations:
+            relation_from = relation.get("from")
+            relation_to = relation.get("to")
+            lines.append(
+                f"- `{inline(relation.get('id'))}` "
+                f"{inline(title_by_id.get(relation_from, relation_from))} "
+                f"— **{inline(relation.get('type'))}** → "
+                f"{inline(title_by_id.get(relation_to, relation_to))}"
+            )
+
+    lines.extend(
+        [
+            "",
+            "## Revision reference",
+            "",
+            f"- Current formal revision: `{project.get('revision')}`",
+            "- Commit receipts: `../packages/archive/receipts/`",
+            "- This view does not infer a latest-change summary from receipts.",
+            "",
+            "## Navigation",
+            "",
+            "- Formal project state: `../state/`",
+            "- Formal records: `../records/`",
+            "- Registered sources: `../sources/registry.json`",
+            "- Pending work (not represented above): `../work/`",
+            "- Retrieval index: `../index/`",
+            "- Handoffs and receipts: `../packages/`",
+            "",
+        ]
+    )
+    return "\n".join(lines)
 
 
 def encoded(value: object) -> str:
@@ -201,8 +357,10 @@ def write_atomic(path: Path, text: str) -> None:
 
 
 def render(skill_root: Path) -> dict:
-    view = build_project_map(*load_inputs(skill_root))
+    inputs = load_inputs(skill_root)
+    view = build_project_map(*inputs)
     write_atomic(skill_root / "views" / "project-map.json", encoded(view))
+    write_atomic(skill_root / "views" / "project-map.md", build_project_markdown(*inputs, view))
     return view
 
 
@@ -221,6 +379,7 @@ def main() -> int:
         json.dumps(
             {
                 "rendered": str(root / "views" / "project-map.json"),
+                "human_readable_rendered": str(root / "views" / "project-map.md"),
                 "project_id": view["project_id"],
                 "binding_status": binding["status"],
                 "source_revision": view["source"]["project_revision"],

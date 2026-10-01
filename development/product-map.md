@@ -2,7 +2,7 @@
 
 - Scope: development-only product intent and coverage map
 - Authority: user-confirmed requirements, organized for framework development
-- Updated: 2026-09-23
+- Updated: 2026-10-01
 - Runtime distribution: excluded from `main` and user release archives
 
 ## How to use this map
@@ -143,6 +143,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `DATA-010` | low | Grow a broader personal knowledge base gradually without making it a prerequisite for project initialization. | planned | Current knowledge is project-local only. |
 | `DATA-011` | high | Directly load the compact project map, then read detailed records, source metadata, and materials only when the current node or task requires them. | implemented | Child entry loads `views/project-map.json` and routes selective formal-detail reads. |
 | `DATA-012` | high | Keep framework load priority, task scheduling priority, and objective/milestone/task hierarchy distinct; time horizon alone does not make a required milestone low priority. | implemented | Structured runtime semantics, direct rules, data-model guidance, and tests; no data-schema change. |
+| `DATA-013` | high | Generate a deterministic human-readable project map beside the compact machine map, from the same formal revision, without creating a second authority or invalidating older compatible children. | partial | Implemented and tested in development `0.7.0-dev.1`; no user runtime release has been authorized yet. |
 
 ### D. Cross-conversation workflow
 
@@ -249,6 +250,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `DATA-003` | depends_on | `DATA-004`, `DATA-008` | A trustworthy map depends on accepted records and typed relations. |
 | `DATA-011` | depends_on | `DATA-003`, `PROD-008` | Selective loading depends on a reliable derived map and framework load priorities. |
 | `DATA-012` | constrained_by | `DATA-007`, `PROD-008` | Scheduling priority remains separate from loading priority and goal hierarchy. |
+| `DATA-013` | depends_on | `DATA-003`, `FLOW-005` | The human-review map remains safe only when formal records stay authoritative and every accepted commit regenerates all derived views from one revision. |
 | `DATA-009` | constrained_by | `FLOW-006` | Retrieval coverage and package integrity must not become truth claims. |
 | `QUAL-001` | tests | `FLOW-001`, `DATA-002`, `DATA-003`, `FLOW-005` | Core tests protect cross-cutting product invariants. |
 | `QUAL-007` | tests | `ISOL-001`, `ISOL-002`, `ISOL-003`, `ISOL-004`, `ISOL-005`, `ISOL-006` | Isolation tests must exercise both deterministic storage boundaries and conversation-routing behavior. |

@@ -21,6 +21,9 @@ class AuthorityBoundaryTest(ProjectTestCase):
 
         for relative in ("state", "records", "sources", "work", "views", "index", "packages"):
             self.assertTrue((self.skill / relative).is_dir())
+        self.assertTrue((self.skill / "views" / "project-map.md").is_file())
+        self.assertEqual(Path(self.created["views"]["machine"]), self.skill / "views" / "project-map.json")
+        self.assertEqual(Path(self.created["views"]["human_review"]), self.skill / "views" / "project-map.md")
         for excluded in ("development", "tests", "private", "database"):
             self.assertFalse((self.skill / excluded).exists())
         self.assertIn("allow_implicit_invocation: false", (self.skill / "agents" / "openai.yaml").read_text())

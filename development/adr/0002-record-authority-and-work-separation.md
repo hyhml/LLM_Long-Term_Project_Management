@@ -4,9 +4,9 @@
 - Date: 2026-09-20
 - Scope: Lightweight project-local storage for projects with tens of nodes
 - Distribution: Development branch only; not part of the runtime skill on `main`
-- Implemented in: `0.2.0-dev.1`
+- Implemented in: `0.2.0-dev.1`; human-review view extension accepted for `0.7.0-dev.1`
 
-Implementation note: `0.3.0-dev.1` keeps this authority boundary but splits the formal layer into `state/`, `records/`, and `sources/`. The project map remains derived from those formal inputs.
+Implementation note: `0.3.0-dev.1` keeps this authority boundary but splits the formal layer into `state/`, `records/`, and `sources/`. The project maps remain derived from those formal inputs. The accepted `0.7.0-dev.1` extension adds a human-review Markdown projection beside the compact JSON projection without changing formal schemas or authority.
 
 ## Context
 
@@ -27,7 +27,8 @@ For the lightweight implementation, use this project-local layout:
 │   ├── explorations/
 │   └── candidate-tools/
 ├── views/
-│   └── project-map.json
+│   ├── project-map.json
+│   └── project-map.md
 └── packages/
     ├── inbox/
     ├── outbox/
@@ -38,7 +39,7 @@ The rules are:
 
 1. `records/store.json` contains the accepted records, typed relations, current focus, and monotonic project revision. It is the formal authority.
 2. `records/materials/` contains accepted detailed material addressed from formal records.
-3. `views/project-map.json` is a compact, directly loaded navigation view generated deterministically from `records/store.json`. It may point to formal records but cannot create or override them.
+3. `views/project-map.json` is a compact, directly loaded navigation view. `views/project-map.md` is a human-review navigation view. Both are generated deterministically from the same formal project revision, may point to formal records, and cannot create or override them. Missing Markdown remains a compatible, rebuildable state for children created before the extension.
 4. `work/explorations/` contains current exploration, attempts, and unconfirmed findings. `work/candidate-tools/` contains reusable tools awaiting a retention decision. Neither directory is formal project state.
 5. `packages/` contains transport files and integration receipts. A valid package proves payload integrity, not acceptance or authority.
 6. Explorer sessions may write authorized project artifacts and `work/`, but never `records/`, `views/`, or archived decisions.
@@ -60,8 +61,8 @@ Existing v0.1 child skills are not modified automatically. A migration design mu
 ## Enforcement
 
 - `scripts/init_project.py` creates the separated layout and formal store.
-- `scripts/render_project_views.py` is the only framework generator for the map view.
-- `scripts/validate_project.py` rebuilds the expected view and rejects stale or manually edited maps.
+- `scripts/render_project_views.py` is the only framework generator for both map views.
+- `scripts/validate_project.py` rebuilds the expected views and rejects stale or manually edited generated maps; it accepts a pre-extension child with no Markdown view until an explicit render or accepted transaction creates it.
 - `scripts/handoff.py` binds exports to the formal store's project ID and revision.
 - The total skill and generated child skill both state the explorer and integrator write boundaries.
 
@@ -76,9 +77,9 @@ Benefits:
 
 Costs:
 
-- every formal change must regenerate and validate the view;
+- every formal change must regenerate and validate both views;
 - the single mutable store does not yet provide immutable history or exact snapshot conflict tokens;
-- older generated child skills need an explicit migration before adopting the new layout.
+- children from the pre-`0.2.0` authority layout still need an explicit migration; the `0.7.0` Markdown projection itself needs no project-data migration.
 
 ## Deliberate non-decisions
 
@@ -87,7 +88,8 @@ This ADR does not accept the content-addressed object store, immutable snapshots
 ## Acceptance tests
 
 - A new child skill contains `records/`, `work/`, `views/`, and `packages/`, not the v0.1 state/database layout.
-- Rendering the same formal store twice produces identical map bytes.
-- Manually changing the derived map causes project validation to fail.
-- Pending material in `work/` does not appear in the generated map.
+- Rendering the same formal store twice produces identical JSON and Markdown map bytes.
+- Manually changing either generated map causes project validation to fail.
+- Pending material in `work/` does not appear in either generated map.
+- A compatible pre-extension child without `project-map.md` remains valid and gains both current views on the next explicit render or accepted transaction.
 - Handoff export uses the formal store's project ID and revision.

@@ -30,7 +30,7 @@
         "proposal-commit",
         "versioning"
       ],
-      "runtime_effect": "implemented-in-0.2.0-dev.1"
+      "runtime_effect": "implemented-in-0.2.0-dev.1; human-review-view-extended-in-0.7.0-dev.1"
     },
     {
       "id": "ADR-0003",

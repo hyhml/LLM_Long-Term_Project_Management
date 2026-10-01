@@ -35,7 +35,7 @@ python scripts/project_transaction.py commit \
   --decisions /absolute/path/decisions.json
 ```
 
-The tool verifies the live base revision, validates the candidate at that revision, advances all formal components exactly once, regenerates the map, marks the retrieval index stale, validates again, publishes the files, and creates a receipt under `packages/archive/receipts/`. The tool validates the decision ledger but cannot infer whether every candidate edit corresponds to an accepted item; the maintainer/integrator must enforce that mapping during candidate editing and review.
+The tool verifies the live base revision, validates the candidate at that revision, advances all formal components exactly once, regenerates both project-map views, marks the retrieval index stale, validates again, publishes the files, and creates a receipt under `packages/archive/receipts/`. The tool validates the decision ledger but cannot infer whether every candidate edit corresponds to an accepted item; the maintainer/integrator must enforce that mapping during candidate editing and review.
 
 Successful commits remove their candidate data while preserving the plan and receipt. Projects created by older framework versions may retain committed candidates containing `SKILL.md`. Inspect them without mutation:
 

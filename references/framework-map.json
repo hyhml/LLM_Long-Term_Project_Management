@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "framework_version": "0.6.2-dev.1",
+  "framework_version": "0.7.0-dev.1",
   "compatibility": {
     "current_entry_protocol": 1,
     "supported_entry_protocols": [1],
@@ -47,6 +47,11 @@
       "id": "formal-data-authority",
       "load_priority": "high",
       "rule": "Accepted state/, records/, and sources/ are authoritative; views/ and index/ are rebuildable derivatives and must not be edited as project authority."
+    },
+    {
+      "id": "dual-derived-project-views",
+      "load_priority": "high",
+      "rule": "project-map.json is the compact directly loaded machine view; project-map.md is the human-review view. Both are deterministic, non-authoritative projections of the same formal revision, and neither may be edited to change project facts."
     },
     {
       "id": "pending-work-separation",
