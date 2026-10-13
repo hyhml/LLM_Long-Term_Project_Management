@@ -10,7 +10,7 @@ import sys
 from pathlib import Path
 
 from project_binding import CURRENT_DATA_SCHEMAS, INSTANCE_SCHEMA, MANAGER_SKILL, managed_hashes
-from render_project_views import build_project_map, build_project_markdown, load_inputs, load_object
+from render_project_views import TREE_SCHEMA, build_project_map, build_project_markdown, load_inputs, load_object
 
 
 REQUIRED = (
@@ -64,6 +64,71 @@ CLASSIFICATION_LAYERS = {"framework", "data", "mixed", "none/read-only"}
 DATA_SUBTYPES = {"project", "regression", "evaluation", "environment", "private-user"}
 AUDIENCES = {"runtime-user", "developer", "both"}
 CONTROL_FIELDS = {"write_authority", "storage_targets", "validation_route", "version_route", "release_boundary"}
+
+
+def validate_research_tree(content: dict, endpoints: set[str]) -> tuple[list[str], set[str]]:
+    errors: list[str] = []
+    nodes = content.get("nodes")
+    if not isinstance(nodes, list) or not nodes:
+        return ["research content tree requires a non-empty nodes list"], set()
+    by_id: dict[str, dict] = {}
+    for node in nodes:
+        if not isinstance(node, dict):
+            errors.append("research tree node must be an object")
+            continue
+        node_id = node.get("node_id")
+        if not isinstance(node_id, str) or not node_id.strip() or node_id in by_id:
+            errors.append("research tree node IDs must be non-empty and unique")
+            continue
+        by_id[node_id] = node
+        for field in ("title", "question", "evidence_assessment"):
+            if not non_empty(node.get(field)):
+                errors.append(f"research tree node {node_id} requires {field}")
+        for field in ("depends_on", "evidence_refs", "open_gaps"):
+            values = node.get(field)
+            if not isinstance(values, list) or any(not isinstance(item, str) or not item.strip() for item in values):
+                errors.append(f"research tree node {node_id} {field} must be a string list")
+        if "parent_id" not in node:
+            errors.append(f"research tree node {node_id} requires parent_id")
+        parent = node.get("parent_id")
+        if parent is not None and (not isinstance(parent, str) or not parent.strip()):
+            errors.append(f"research tree node {node_id} parent_id must be null or a non-empty string")
+    for node_id, node in by_id.items():
+        linked = ([node.get("parent_id")] if node.get("parent_id") is not None else []) + (
+            node.get("depends_on") if isinstance(node.get("depends_on"), list) else []
+        )
+        for linked_id in linked:
+            if not isinstance(linked_id, str) or linked_id not in by_id:
+                errors.append(f"research tree node {node_id} references unknown node {linked_id}")
+            if linked_id == node_id:
+                errors.append(f"research tree node {node_id} cannot reference itself")
+        if isinstance(node.get("evidence_refs"), list):
+            for reference in node["evidence_refs"]:
+                if not isinstance(reference, str) or reference not in endpoints:
+                    errors.append(f"research tree node {node_id} references unknown evidence {reference}")
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(node_id: str) -> None:
+        if node_id in visited:
+            return
+        if node_id in visiting:
+            errors.append(f"research tree has a dependency cycle at {node_id}")
+            return
+        visiting.add(node_id)
+        node = by_id[node_id]
+        links = ([node.get("parent_id")] if node.get("parent_id") is not None else []) + (
+            node.get("depends_on") if isinstance(node.get("depends_on"), list) else []
+        )
+        for linked_id in links:
+            if isinstance(linked_id, str) and linked_id in by_id:
+                visit(linked_id)
+        visiting.remove(node_id)
+        visited.add(node_id)
+
+    for node_id in by_id:
+        visit(node_id)
+    return errors, set(by_id)
 
 
 def non_empty(value: object) -> bool:
@@ -232,6 +297,7 @@ def validate(
         records = []
     record_ids: set[str] = set()
     task_ids: set[str] = set()
+    tree_records: list[dict] = []
     for record in records:
         if not isinstance(record, dict):
             errors.append("formal record must be an object")
@@ -260,6 +326,8 @@ def validate(
             missing = sorted(field for field in FAILED_ATTEMPT_FIELDS if not non_empty(content.get(field)))
             if missing:
                 errors.append(f"failed attempt {record_id} lacks reusable failure context: {', '.join(missing)}")
+        if kind == "artifact" and content.get("schema") == TREE_SCHEMA:
+            tree_records.append(record)
 
     board_tasks = board.get("tasks")
     listed_task_ids: list[str] = []
@@ -315,6 +383,36 @@ def validate(
             if not non_empty(source.get(field)):
                 errors.append(f"registered source {source_id} requires {field}")
 
+    tree_node_ids: set[str] = set()
+    if len(tree_records) > 1:
+        errors.append("a project may have at most one accepted research content tree")
+    elif tree_records:
+        tree_errors, tree_node_ids = validate_research_tree(tree_records[0]["content"], record_ids | source_ids)
+        errors.extend(tree_errors)
+    for record in records:
+        if not isinstance(record, dict) or record.get("kind") != "task":
+            continue
+        content = record.get("content")
+        if not isinstance(content, dict) or "research_tree_refs" not in content:
+            continue
+        refs = content["research_tree_refs"]
+        if not tree_records:
+            errors.append(f"task {record.get('id')} references a missing research content tree")
+            continue
+        if not isinstance(refs, list) or not refs:
+            errors.append(f"task {record.get('id')} research_tree_refs must be a non-empty list")
+            continue
+        for ref in refs:
+            if not isinstance(ref, dict) or not isinstance(ref.get("node_id"), str) or ref["node_id"] not in tree_node_ids:
+                errors.append(f"task {record.get('id')} references an unknown research tree node")
+                continue
+            for field in ("evidence_gap", "tree_update_after_task"):
+                if not non_empty(ref.get(field)):
+                    errors.append(f"task {record.get('id')} tree reference requires {field}")
+            expected = ref.get("acceptance_evidence")
+            if not isinstance(expected, list) or not expected or any(not isinstance(item, str) or not item.strip() for item in expected):
+                errors.append(f"task {record.get('id')} tree reference requires acceptance_evidence")
+
     relations = store.get("relations")
     if not isinstance(relations, list):
         errors.append("relations must be a list")
@@ -352,14 +450,21 @@ def validate(
 
     try:
         expected_view = build_project_map(project, board, store, sources)
-        legacy_view = dict(expected_view)
-        legacy_view.pop("authority", None)
+        legacy_view = build_project_map(project, board, store, sources, legacy=True)
+        pre_authority_view = dict(legacy_view)
+        pre_authority_view.pop("authority", None)
+        pre_authority_current_view = dict(expected_view)
+        pre_authority_current_view.pop("authority", None)
         human_view_path = root / "views" / "project-map.md"
-        legacy_without_human_view = not human_view_path.exists() and view == legacy_view
-        if view != expected_view and not legacy_without_human_view:
+        legacy_without_human_view = not human_view_path.exists() and view in (pre_authority_view, pre_authority_current_view)
+        legacy_with_human_view = view == legacy_view and human_view_path.exists()
+        if view != expected_view and not legacy_without_human_view and not legacy_with_human_view:
             errors.append("views/project-map.json is stale or manually edited; regenerate it from formal data")
         if human_view_path.exists():
-            expected_markdown = build_project_markdown(project, board, store, sources, expected_view)
+            expected_markdown = build_project_markdown(
+                project, board, store, sources, legacy_view if legacy_with_human_view else expected_view,
+                legacy=legacy_with_human_view,
+            )
             if human_view_path.read_text(encoding="utf-8") != expected_markdown:
                 errors.append("views/project-map.md is stale or manually edited; regenerate it from formal data")
     except (OSError, ValueError) as exc:

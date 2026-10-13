@@ -12,6 +12,7 @@ from pathlib import Path
 from project_binding import require_binding
 
 VIEW_SCHEMA = "ltpm-project-map-view/v3"
+TREE_SCHEMA = "ltpm-research-content-tree/v1"
 PROJECT_SCHEMA = "ltpm-project-state/v2"
 TASK_BOARD_SCHEMA = "ltpm-task-board/v1"
 STORE_SCHEMA = "ltpm-record-store/v2"
@@ -40,7 +41,7 @@ def load_inputs(skill_root: Path) -> tuple[dict, dict, dict, dict]:
     )
 
 
-def build_project_map(project: dict, board: dict, store: dict, sources: dict) -> dict:
+def build_project_map(project: dict, board: dict, store: dict, sources: dict, *, legacy: bool = False) -> dict:
     """Build navigation without treating pending work or an index as authority."""
     expected_schemas = (
         (project, PROJECT_SCHEMA),
@@ -69,6 +70,7 @@ def build_project_map(project: dict, board: dict, store: dict, sources: dict) ->
         raise ValueError("formal records, relations, and sources must be lists")
 
     record_by_id: dict[str, dict] = {}
+    tree_records: list[dict] = []
     nodes = [
         {
             "id": contract["objective_id"],
@@ -87,15 +89,21 @@ def build_project_map(project: dict, board: dict, store: dict, sources: dict) ->
         if not isinstance(record_id, str) or not record_id or record_id in record_by_id:
             raise ValueError("formal record IDs must be non-empty and unique")
         record_by_id[record_id] = record
-        nodes.append(
-            {
-                "id": record_id,
-                "type": record.get("kind"),
-                "title": record.get("title"),
-                "confirmation_status": "accepted",
-                "formal_record_id": record_id,
-            }
-        )
+        is_tree = record.get("kind") == "artifact" and isinstance(record.get("content"), dict) and record["content"].get("schema") == TREE_SCHEMA
+        if is_tree:
+            tree_records.append(record)
+        if legacy or record.get("kind") == "task" or is_tree:
+            nodes.append(
+                {
+                    "id": record_id,
+                    "type": "research-content-tree" if is_tree and not legacy else record.get("kind"),
+                    "title": record.get("title"),
+                    "confirmation_status": "accepted",
+                    "formal_record_id": record_id,
+                }
+            )
+    if len(tree_records) > 1:
+        raise ValueError("a project may have at most one accepted research content tree")
 
     task_view: dict[str, list[dict]] = {"high": [], "low": []}
     board_tasks = board.get("tasks")
@@ -142,21 +150,39 @@ def build_project_map(project: dict, board: dict, store: dict, sources: dict) ->
         if not isinstance(source_id, str) or not source_id or source_id in source_ids:
             raise ValueError("registered source IDs must be non-empty and unique")
         source_ids.add(source_id)
-        source_nodes.append(
-            {
-                "id": source_id,
-                "type": "source",
-                "source_type": source.get("source_type"),
-                "title": source.get("title"),
-                "formal_location": "../sources/registry.json",
-            }
-        )
+        if legacy:
+            source_nodes.append(
+                {
+                    "id": source_id,
+                    "type": "source",
+                    "source_type": source.get("source_type"),
+                    "title": source.get("title"),
+                    "formal_location": "../sources/registry.json",
+                }
+            )
 
     for relation in relations:
         if not isinstance(relation, dict):
             raise ValueError("every formal relation must be an object")
         if relation.get("confirmation_status") != "accepted":
             raise ValueError(f"refusing to render unaccepted formal relation: {relation.get('id')}")
+
+    visible_ids = {node["id"] for node in nodes + source_nodes}
+    visible_relations = relations if legacy else [
+        relation for relation in relations if relation.get("from") in visible_ids and relation.get("to") in visible_ids
+    ]
+    navigation = {
+        "formal_project_state": "../state/",
+        "formal_records": "../records/",
+        "registered_sources": "../sources/registry.json",
+        "pending_work": "../work/",
+        "retrieval_index": "../index/",
+        "handoffs": "../packages/",
+    }
+    if not legacy:
+        navigation["research_content_tree"] = (
+            f"../records/store.json#{tree_records[0]['id']}" if tree_records else None
+        )
 
     return {
         "schema": VIEW_SCHEMA,
@@ -169,22 +195,15 @@ def build_project_map(project: dict, board: dict, store: dict, sources: dict) ->
         },
         "source": {
             "project_revision": revision,
-            "generator": "render_project_views.py/v3",
+            "generator": "render_project_views.py/v3" if legacy else "render_project_views.py/v4",
             "inputs": list(FORMAL_INPUTS),
         },
         "objective_contract": contract,
         "current_focus": project.get("current_focus"),
         "tasks": task_view,
         "nodes": nodes + source_nodes,
-        "relations": relations,
-        "navigation": {
-            "formal_project_state": "../state/",
-            "formal_records": "../records/",
-            "registered_sources": "../sources/registry.json",
-            "pending_work": "../work/",
-            "retrieval_index": "../index/",
-            "handoffs": "../packages/",
-        },
+        "relations": visible_relations,
+        "navigation": navigation,
     }
 
 
@@ -209,7 +228,7 @@ def bullet_lines(values: object, empty: str = "(none)") -> list[str]:
     return [f"- {inline(value)}" for value in values]
 
 
-def build_project_markdown(project: dict, board: dict, store: dict, sources: dict, view: dict) -> str:
+def build_project_markdown(project: dict, board: dict, store: dict, sources: dict, view: dict, *, legacy: bool = False) -> str:
     """Build a compact human-review view from the same formal inputs as the JSON map."""
     contract = project["objective_contract"]
     current_focus = project.get("current_focus") or {}
@@ -263,49 +282,58 @@ def build_project_markdown(project: dict, board: dict, store: dict, sources: dic
                 for task in tasks
             )
 
-    kind_order = ("decision", "attempt", "risk", "evidence", "claim", "review", "question", "artifact")
-    kind_labels = {
-        "decision": "Decisions",
-        "attempt": "Attempts",
-        "risk": "Risks",
-        "evidence": "Evidence",
-        "claim": "Claims",
-        "review": "Reviews",
-        "question": "Questions",
-        "artifact": "Artifacts",
-    }
-    grouped: dict[str, list[dict]] = {}
-    for record in records:
-        if record.get("kind") == "task":
-            continue
-        grouped.setdefault(str(record.get("kind")), []).append(record)
-    lines.extend(["", "## Formal records"])
-    ordered_kinds = [kind for kind in kind_order if kind in grouped]
-    ordered_kinds.extend(sorted(kind for kind in grouped if kind not in kind_order))
-    if not ordered_kinds:
-        lines.extend(["", "- (none)"])
-    for kind in ordered_kinds:
-        lines.extend(["", f"### {kind_labels.get(kind, inline(kind))}", ""])
-        for record in grouped[kind]:
-            outcome = record.get("content", {}).get("outcome") if isinstance(record.get("content"), dict) else None
-            outcome_text = f" [outcome: {inline(outcome)}]" if outcome else ""
-            lines.append(f"- `{inline(record.get('id'))}`{outcome_text} {inline(record.get('title'))}")
+    if legacy:
+        kind_order = ("decision", "attempt", "risk", "evidence", "claim", "review", "question", "artifact")
+        kind_labels = {
+            "decision": "Decisions",
+            "attempt": "Attempts",
+            "risk": "Risks",
+            "evidence": "Evidence",
+            "claim": "Claims",
+            "review": "Reviews",
+            "question": "Questions",
+            "artifact": "Artifacts",
+        }
+        grouped: dict[str, list[dict]] = {}
+        for record in records:
+            if record.get("kind") == "task":
+                continue
+            grouped.setdefault(str(record.get("kind")), []).append(record)
+        lines.extend(["", "## Formal records"])
+        ordered_kinds = [kind for kind in kind_order if kind in grouped]
+        ordered_kinds.extend(sorted(kind for kind in grouped if kind not in kind_order))
+        if not ordered_kinds:
+            lines.extend(["", "- (none)"])
+        for kind in ordered_kinds:
+            lines.extend(["", f"### {kind_labels.get(kind, inline(kind))}", ""])
+            for record in grouped[kind]:
+                outcome = record.get("content", {}).get("outcome") if isinstance(record.get("content"), dict) else None
+                outcome_text = f" [outcome: {inline(outcome)}]" if outcome else ""
+                lines.append(f"- `{inline(record.get('id'))}`{outcome_text} {inline(record.get('title'))}")
 
-    lines.extend(["", "## Sources", ""])
-    if not registered_sources:
-        lines.append("- (none)")
+        lines.extend(["", "## Sources", ""])
+        if not registered_sources:
+            lines.append("- (none)")
+        else:
+            for source in registered_sources:
+                lines.append(
+                    f"- `{inline(source.get('source_id'))}` [{inline(source.get('source_type'))}] "
+                    f"{inline(source.get('title'))} — access: {inline(source.get('access_scope'))}"
+                )
     else:
-        for source in registered_sources:
-            lines.append(
-                f"- `{inline(source.get('source_id'))}` [{inline(source.get('source_type'))}] "
-                f"{inline(source.get('title'))} — access: {inline(source.get('access_scope'))}"
-            )
+        tree = next((node for node in view["nodes"] if node["type"] == "research-content-tree"), None)
+        lines.extend(["", "## Research content tree", ""])
+        if tree is None:
+            lines.append("- (none)")
+        else:
+            lines.append(f"- `{inline(tree['id'])}` {inline(tree.get('title'))} — formal record: `../records/store.json`")
 
     lines.extend(["", "## Relations", ""])
-    if not relations:
+    shown_relations = relations if legacy else view["relations"]
+    if not shown_relations:
         lines.append("- (none)")
     else:
-        for relation in relations:
+        for relation in shown_relations:
             relation_from = relation.get("from")
             relation_to = relation.get("to")
             lines.append(

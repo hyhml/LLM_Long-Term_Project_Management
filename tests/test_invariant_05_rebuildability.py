@@ -27,7 +27,7 @@ class RebuildabilityTest(ProjectTestCase):
         self.assertEqual(map_path.read_bytes(), original)
         self.assertEqual(human_map_path.read_bytes(), original_human)
 
-    def test_human_view_exposes_review_sections_from_formal_data(self) -> None:
+    def test_human_view_focuses_on_tasks_and_research_tree_entry(self) -> None:
         store_path = self.skill / "records" / "store.json"
         store = read_json(store_path)
         store["records"].extend(
@@ -108,18 +108,13 @@ class RebuildabilityTest(ProjectTestCase):
             "## Objective",
             "### High priority",
             "### Low priority",
-            "### Decisions",
-            "### Attempts",
-            "[outcome: failed]",
-            "### Risks",
-            "### Evidence",
-            "## Sources",
-            "source-human-map",
+            "## Research content tree",
             "## Relations",
-            "relation-human-map-evidence",
             "## Revision reference",
         ):
             self.assertIn(expected, human_map)
+        for excluded in ("### Decisions", "### Attempts", "\n### Evidence\n", "source-human-map", "relation-human-map-evidence"):
+            self.assertNotIn(excluded, human_map)
 
     def test_validator_detects_manual_derived_view_edit(self) -> None:
         map_path = self.skill / "views" / "project-map.json"

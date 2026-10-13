@@ -149,6 +149,14 @@
       "path": "development/adr/0015-proportional-work-and-concise-consent.md",
       "topics": ["change-weight", "consent", "environment", "packaging", "compatibility"],
       "runtime_effect": "implemented-in-0.6.1-dev.1"
+    },
+    {
+      "id": "ADR-0016",
+      "title": "Research content tree guides the task-focused project map",
+      "status": "accepted",
+      "path": "development/adr/0016-tree-guided-task-map.md",
+      "topics": ["research-content-tree", "task-map", "derived-view", "task-planning", "compatibility"],
+      "runtime_effect": "implemented-in-development; not-yet-released"
     }
   ]
 }

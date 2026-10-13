@@ -144,7 +144,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `DATA-011` | high | Directly load the compact project map, then read detailed records, source metadata, and materials only when the current node or task requires them. | implemented | Child entry loads `views/project-map.json` and routes selective formal-detail reads. |
 | `DATA-012` | high | Keep framework load priority, task scheduling priority, and objective/milestone/task hierarchy distinct; time horizon alone does not make a required milestone low priority. | implemented | Structured runtime semantics, direct rules, data-model guidance, and tests; no data-schema change. |
 | `DATA-013` | high | Generate a deterministic human-readable project map beside the compact machine map, from the same formal revision, without creating a second authority or invalidating older compatible children. | implemented | Released in `v0.7.0`; exact-artifact initialization, dual-view transaction, legacy compatibility, and freshness tests passed. |
-| `DATA-014` | high | In research projects, let the content tree of questions, dependencies, evidence progress, and gaps guide the task map: derive reviewable task candidates from tree needs, put only user-confirmed tasks into the task-focused map, and feed task results back to the tree. | planned | The user clarified the direction as tree → task proposal → user confirmation → map on 2026-10-13. `c8b23a7` offers an artifact-based interim convention only. The current renderer still expands all formal records and the validator does not check tree-node or task references; no released implementation exists. |
+| `DATA-014` | high | In research projects, let the content tree of questions, dependencies, evidence progress, and gaps guide the task map: derive reviewable task candidates from tree needs, put only user-confirmed tasks into the task-focused map, and feed task results back to the tree. | partial | Development runtime now filters map nodes and validates an optional tree artifact and task references; transaction, legacy-view, release, and sustained-use evidence remain before claiming end-to-end completion. No stable release exists. |
 
 ### D. Cross-conversation workflow
 
@@ -181,6 +181,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `GOV-006` | high | Use this product map as the development-level authority for product intent and coverage. | implemented | ADR-0012 and developer `AGENTS.md`. |
 | `GOV-007` | high | Update this map when a user changes a requirement, priority, scope, or acceptance condition. | implemented | Developer `AGENTS.md`; ongoing compliance is required for every development change. |
 | `GOV-008` | high | Scale framework work by side effect and risk, plan one evidence-producing gate per claim, reuse still-valid evidence, and rerun only gates invalidated by later changes. | implemented | Developer `AGENTS.md`, this control loop, runtime release policy, and ADR-0015. |
+| `GOV-009` | high | Use a concise shared glossary for framework terms whose meaning changes task, data, or write authority; keep domain terms project-owned. | partial | `references/glossary.md` and skill routing are implemented in development; release validation and real-use evidence remain. |
 
 ### G. Testing, release, and data boundaries
 
@@ -279,7 +280,7 @@ The following gaps must remain visible in every framework planning session:
 1. **Complete child generation (`CHILD-001`–`CHILD-003`)**: the current initializer creates a valid skeleton but cannot yet consume the complete discussed project graph or create a formal initialization proposal/receipt.
 2. **Future project-data schema migration (`CHILD-008`)**: v0.5.0 intentionally keeps existing data schemas and refuses unsupported schemas; a future release must design and test the first real migration before claiming general migration support.
 3. **Parallel exploration (`FLOW-007`)**: high priority but intentionally deferred; stale transactions are rejected, while parallel rebase/merge is not implemented.
-4. **Research content tree (`DATA-014`)**: the task-focused map and separate content tree are confirmed requirements. Existing artifact guidance is only an interim convention; renderer behavior, tree validation, and compatibility work remain.
+4. **Research content tree (`DATA-014`)**: development runtime implements a task-focused map and a validated optional tree artifact; transaction and legacy-view checks, release, and sustained-use evidence remain.
 
 Release isolation is no longer an open gap: `QUAL-003` and `QUAL-004` were completed by `v0.4.0` and reused successfully through the stable `v0.7.0` release.
 
