@@ -144,7 +144,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `DATA-011` | high | Directly load the compact project map, then read detailed records, source metadata, and materials only when the current node or task requires them. | implemented | Child entry loads `views/project-map.json` and routes selective formal-detail reads. |
 | `DATA-012` | high | Keep framework load priority, task scheduling priority, and objective/milestone/task hierarchy distinct; time horizon alone does not make a required milestone low priority. | implemented | Structured runtime semantics, direct rules, data-model guidance, and tests; no data-schema change. |
 | `DATA-013` | high | Generate a deterministic human-readable project map beside the compact machine map, from the same formal revision, without creating a second authority or invalidating older compatible children. | implemented | Released in `v0.7.0`; exact-artifact initialization, dual-view transaction, legacy compatibility, and freshness tests passed. |
-| `DATA-014` | high | In research projects, let the content tree of questions, dependencies, evidence progress, and gaps guide the task map: derive reviewable task candidates from tree needs, put only user-confirmed tasks into the task-focused map, and feed task results back to the tree. | partial | Development runtime now filters map nodes and validates an optional tree artifact and task references; transaction, legacy-view, release, and sustained-use evidence remain before claiming end-to-end completion. No stable release exists. |
+| `DATA-014` | high | In research projects, let the content tree of questions, dependencies, evidence progress, and gaps guide the task map: derive reviewable task candidates from tree needs, put only user-confirmed tasks into the task-focused map, and feed task results back to the tree. | partial | Released in `v0.8.0`: task-focused map, optional validated tree artifact, task references, transaction and legacy-view tests. Sustained use still needs evidence before claiming the whole planning loop is complete. |
 
 ### D. Cross-conversation workflow
 
@@ -181,7 +181,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `GOV-006` | high | Use this product map as the development-level authority for product intent and coverage. | implemented | ADR-0012 and developer `AGENTS.md`. |
 | `GOV-007` | high | Update this map when a user changes a requirement, priority, scope, or acceptance condition. | implemented | Developer `AGENTS.md`; ongoing compliance is required for every development change. |
 | `GOV-008` | high | Scale framework work by side effect and risk, plan one evidence-producing gate per claim, reuse still-valid evidence, and rerun only gates invalidated by later changes. | implemented | Developer `AGENTS.md`, this control loop, runtime release policy, and ADR-0015. |
-| `GOV-009` | high | Use a concise shared glossary for framework terms whose meaning changes task, data, or write authority; keep domain terms project-owned. | partial | `references/glossary.md` and skill routing are implemented in development; release validation and real-use evidence remain. |
+| `GOV-009` | high | Use a concise shared glossary for framework terms whose meaning changes task, data, or write authority; keep domain terms project-owned. | implemented | `references/glossary.md` and skill routing released in `v0.8.0`, prompted by user clarification of total skill, LTPM, tree, and map. |
 
 ### G. Testing, release, and data boundaries
 
@@ -190,7 +190,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `QUAL-001` | high | Protect the original six core invariants: cross-conversation loop, authority boundary, decision/revision transaction, project identity, rebuildability, and information boundary. | implemented | 23 original core tests remain passing. |
 | `QUAL-002` | high | Add regression tests only for reusable defects under an itemized proposal; keep real cases and gold data external. | implemented | ADR-0010 and regression policy. |
 | `QUAL-003` | high | Keep developer tests, ADRs, policies, and release tooling out of user distributions. | implemented | Exact runtime allowlist and release tests. |
-| `QUAL-004` | high | Build `main` and release archives from a whitelist, fail on unclassified files, and validate the generated runtime and child skill. | implemented | ADR-0011, deterministic builder, release tests, and receipts through `v0.7.0`. |
+| `QUAL-004` | high | Build `main` and release archives from a whitelist, fail on unclassified files, and validate the generated runtime and child skill. | implemented | ADR-0011, deterministic builder, release tests, and receipts through `v0.8.0`. |
 | `QUAL-005` | high | Do not store project data, real regression/evaluation data, secrets, or unrelated private paths in framework releases. | implemented | Release allowlist, private ignore, and policies. |
 | `QUAL-006` | low | Domain-specific educational safety and adversarial test suites. | out-of-scope | May belong to a future educational child skill, not the generic framework core. |
 | `QUAL-007` | high | Add a multi-project isolation invariant group covering root/identity mismatch, retrieval and package boundaries, framework-update preservation, conversation switching, and explicit coordination. | implemented | Five synthetic tests cover separate search, explicit coordination, mismatch/ambiguity, session switch, handoff rejection, upgrade preservation, and rollback. |
@@ -280,9 +280,9 @@ The following gaps must remain visible in every framework planning session:
 1. **Complete child generation (`CHILD-001`–`CHILD-003`)**: the current initializer creates a valid skeleton but cannot yet consume the complete discussed project graph or create a formal initialization proposal/receipt.
 2. **Future project-data schema migration (`CHILD-008`)**: v0.5.0 intentionally keeps existing data schemas and refuses unsupported schemas; a future release must design and test the first real migration before claiming general migration support.
 3. **Parallel exploration (`FLOW-007`)**: high priority but intentionally deferred; stale transactions are rejected, while parallel rebase/merge is not implemented.
-4. **Research content tree (`DATA-014`)**: development runtime implements a task-focused map and a validated optional tree artifact; transaction and legacy-view checks, release, and sustained-use evidence remain.
+4. **Research content tree (`DATA-014`)**: `v0.8.0` provides a task-focused map and a validated optional tree artifact; sustained-use evidence remains for the full tree-guided planning loop.
 
-Release isolation is no longer an open gap: `QUAL-003` and `QUAL-004` were completed by `v0.4.0` and reused successfully through the stable `v0.7.0` release.
+Release isolation is no longer an open gap: `QUAL-003` and `QUAL-004` were completed by `v0.4.0` and reused successfully through the stable `v0.8.0` release.
 
 ## 7. Open design questions requiring user discussion
 
