@@ -2,7 +2,7 @@
 
 - Scope: development-only product intent and coverage map
 - Authority: user-confirmed requirements, organized for framework development
-- Updated: 2026-10-02
+- Updated: 2026-10-13
 - Runtime distribution: excluded from `main` and user release archives
 
 ## How to use this map
@@ -144,6 +144,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `DATA-011` | high | Directly load the compact project map, then read detailed records, source metadata, and materials only when the current node or task requires them. | implemented | Child entry loads `views/project-map.json` and routes selective formal-detail reads. |
 | `DATA-012` | high | Keep framework load priority, task scheduling priority, and objective/milestone/task hierarchy distinct; time horizon alone does not make a required milestone low priority. | implemented | Structured runtime semantics, direct rules, data-model guidance, and tests; no data-schema change. |
 | `DATA-013` | high | Generate a deterministic human-readable project map beside the compact machine map, from the same formal revision, without creating a second authority or invalidating older compatible children. | implemented | Released in `v0.7.0`; exact-artifact initialization, dual-view transaction, legacy compatibility, and freshness tests passed. |
+| `DATA-014` | high | For research projects, support an optional content tree that separates research questions and evidence gaps from task scheduling and can inform reviewable next-task proposals. | open-design | Feedback `fb-research-tree-task-planning-20261013` requests evaluation. A single `artifact` record is a compatible guidance candidate; strict task-only map behavior, nested-reference validation, and any general schema remain undecided. No released capability is claimed. |
 
 ### D. Cross-conversation workflow
 
@@ -251,6 +252,8 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `DATA-011` | depends_on | `DATA-003`, `PROD-008` | Selective loading depends on a reliable derived map and framework load priorities. |
 | `DATA-012` | constrained_by | `DATA-007`, `PROD-008` | Scheduling priority remains separate from loading priority and goal hierarchy. |
 | `DATA-013` | depends_on | `DATA-003`, `FLOW-005` | The human-review map remains safe only when formal records stay authoritative and every accepted commit regenerates all derived views from one revision. |
+| `DATA-014` | depends_on | `DATA-003`, `DATA-004`, `FLOW-005` | A research tree must distinguish accepted content from pending exploration and use the existing user-confirmed revision boundary. |
+| `FLOW-002` | uses | `DATA-014` | A research project may use accepted tree nodes and evidence gaps to explain candidate tasks without creating them automatically. |
 | `DATA-009` | constrained_by | `FLOW-006` | Retrieval coverage and package integrity must not become truth claims. |
 | `QUAL-001` | tests | `FLOW-001`, `DATA-002`, `DATA-003`, `FLOW-005` | Core tests protect cross-cutting product invariants. |
 | `QUAL-007` | tests | `ISOL-001`, `ISOL-002`, `ISOL-003`, `ISOL-004`, `ISOL-005`, `ISOL-006` | Isolation tests must exercise both deterministic storage boundaries and conversation-routing behavior. |
@@ -276,6 +279,7 @@ The following gaps must remain visible in every framework planning session:
 1. **Complete child generation (`CHILD-001`–`CHILD-003`)**: the current initializer creates a valid skeleton but cannot yet consume the complete discussed project graph or create a formal initialization proposal/receipt.
 2. **Future project-data schema migration (`CHILD-008`)**: v0.5.0 intentionally keeps existing data schemas and refuses unsupported schemas; a future release must design and test the first real migration before claiming general migration support.
 3. **Parallel exploration (`FLOW-007`)**: high priority but intentionally deferred; stale transactions are rejected, while parallel rebase/merge is not implemented.
+4. **Research content tree (`DATA-014`)**: optional artifact-based guidance is a development candidate; strict task-only map behavior and automatic validation of nested node references are unresolved.
 
 Release isolation is no longer an open gap: `QUAL-003` and `QUAL-004` were completed by `v0.4.0` and reused successfully through the stable `v0.7.0` release.
 
@@ -286,6 +290,7 @@ These are not permission to choose silently:
 1. How many historical framework versions, if any, should the total skill support side by side after the v0.4.0 adapter path?
 2. Should local project discovery use an optional private registry, explicit roots, or both?
 3. What transaction and rollback model should govern the first real project-data schema migration?
+4. Should a research tree remain one artifact with manually reviewed node references, or gain a validated general schema? Should the project map show all accepted records or provide a separate task-only projection?
 
 ADR-0013 and the released v0.5.0 plan resolve the dependency, thin-entry, user-instruction, adapter rollback, and read-mostly coordination choices. ADR-0014 and released v0.6.0 add the consent-based external feedback loop without changing project-data schemas.
 ADR-0015 scales development work by risk and defines the minimal v0.6.1 interaction changes without freezing implementation details.

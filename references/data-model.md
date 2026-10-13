@@ -37,6 +37,14 @@ Framework or external regression/evaluation work is not stored as a project task
 
 Universal kinds are `task`, `claim`, `evidence`, `attempt`, `review`, `decision`, `question`, `artifact`, and `risk`. Domain extensions use `namespace:kind`; do not redefine a universal kind.
 
+### Optional research content tree
+
+An exploratory project may keep a research content tree separate from task scheduling. The current schema can store the accepted tree as **one** `artifact` record in `records/store.json`. Give that record a stable ID such as `artifact-research-tree`; put stable tree-node IDs, parent or dependency links, research questions, evidence or counter-evidence references, unresolved gaps, and next verifiable questions in its `content`. Keep claims and evidence as distinct formal records or registered sources when they need independent review. A tree node describes the state of inquiry, not a task-board status or proof that a claim is true.
+
+The tree record is formal project data only after an itemized user decision and the normal transaction. Before acceptance, keep its outline and changes in `work/`. Do not make an ungoverned Markdown file or the project map the tree's authority. A human-readable outline may be produced for review, but the accepted record remains the source of truth. The current validator does not understand IDs nested inside an artifact's `content`; the maintainer must review node uniqueness and references in each proposal. This convention does not add a project-data schema or migration.
+
+The generated project map currently lists all accepted top-level records. Keeping the research tree inside one artifact gives the map one entry into the tree rather than a node for every research question; it does **not** turn the map into a task-only view. A strictly task-only map would require a separate view design and acceptance.
+
 A failed attempt has `content.outcome: "failed"` and non-empty `attempted`, `failure_reason`, `failure_conditions`, `retry_conditions`, and `evidence_or_reproduction` fields.
 
 A relation requires stable `id`, `from`, `type`, `to`, and `confirmation_status: "accepted"`. Its endpoints may be the objective, a formal record, or a registered source. Generic types are `contains`, `depends_on`, `causes`, `supports`, `contradicts`, `tests`, `produces`, `supersedes`, `blocks`, `derived_from`, `evaluates`, `decides`, and `cites`; domain extensions use `namespace:type`.
