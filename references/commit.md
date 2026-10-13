@@ -26,6 +26,8 @@ Keep epistemic roles separate: a `claim` states an assertion, `evidence` records
 
 For an optional research content tree, propose changes to its accepted `artifact` record separately from changes to individual claims, evidence, sources, or tasks. Show the old and proposed tree nodes, their stable IDs, dependency and evidence references, changed gaps, and remaining uncertainty. A task proposal may cite the tree artifact and relevant node IDs in its `content`, with its gap, dependencies, expected output, acceptance evidence, and intended tree review after completion. These nested fields are a project convention, not a new schema requirement; review their references manually because the current validator cannot prove them. Only accepted task proposals change `state/task-board.json`. Tree changes never imply a new task, a task priority, or a completed scientific claim. Itemized tree and task decisions may enter one accepted revision, but neither decision silently approves the other.
 
+For research planning, present the causal chain in the proposal: accepted tree node and evidence gap → candidate task and acceptance evidence → user decision → accepted task-board change. After execution, propose evidence and tree revisions separately from any task-status change. A completed task may leave its originating tree question open.
+
 The decision ledger passed to commit is a JSON object with a non-empty `decisions` list. Every item requires `change_id`, `decision`, `operation`, `target`, and `reason`. An objective-contract change additionally requires an accepted `revise-objective` decision targeting `state/project.json#objective_contract`; keep `objective_id` unchanged and increment `objective_revision` once.
 
 ## Commit

@@ -6,6 +6,8 @@ Read the generated project's `SKILL.md` and directly loaded `views/project-map.j
 
 If this project has an accepted research content tree, follow the task's reference to its tree artifact and relevant node IDs; read only those nodes and authorized evidence or source metadata needed for the task. Check their dependencies, evidence gaps, and outstanding questions. The tree informs exploration and later task proposals but never creates or reprioritizes a task by itself. A project without a research tree follows the ordinary task route.
 
+When choosing **future** research work, begin with the accepted tree's unresolved nodes and evidence gaps, then derive candidate tasks. The current task map identifies already confirmed work; it does not determine the research structure. User acceptance is the boundary between a candidate from the tree and a task on the board/map.
+
 Do not change `state/`, `records/`, `sources/`, `views/`, `index/`, or `packages/archive/`. Keep pending exploration notes under `work/explorations/`; put reusable candidate tools under `work/candidate-tools/`. Work on ordinary project artifacts only when the contract permits it.
 
 Record:
