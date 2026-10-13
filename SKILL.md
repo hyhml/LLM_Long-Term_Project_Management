@@ -26,8 +26,12 @@ Build and maintain project-local skills without turning this framework skill int
 15. Treat a user-raised concern that may involve the framework as a feedback trigger, even before reproducibility or root cause is known. Also trigger on a user correction, reproducible shared failure, violated invariant, repeated ambiguity, or credible cross-project reuse. Classify it only as a framework candidate until developer triage; do not let feedback capture displace the active project task.
 16. Never collect, export, upload, retain, or derive a regression test from real feedback silently. For feedback based only on already authorized context, show one minimized final preview and obtain one approval for local package creation. If new private or external material must be read, obtain one earlier bounded collection approval. Feedback export is manual and has no telemetry; real cases remain external `data:regression`, while only separately approved, non-reconstructive synthetic tests may enter framework development.
 17. Keep the private machine profile outside exports. Never record secrets, tokens, raw credentials, unrelated private paths, full conversations, or whole project stores in feedback by default.
+18. In research projects with an accepted content tree, use its questions and evidence gaps to justify candidate tasks. Add only user-confirmed tasks to the task board and task-focused project map; return task results to the tree through separate review. The map is derived navigation, not the research authority.
 
 ## Route the request
+
+- For the meaning of LTPM, total skill, child skill, project map, content tree, task board, or related authority terms, read `references/glossary.md`.
+- For creating, reviewing, or using a research content tree to plan tasks, read `references/research-content-tree.md`.
 
 - If `private/local-environment.json` is missing, or the user asks to refresh the machine profile, read `references/local-environment.md`.
 - To create a project-local skill, read `references/bootstrap.md`.

@@ -37,6 +37,16 @@ Framework or external regression/evaluation work is not stored as a project task
 
 Universal kinds are `task`, `claim`, `evidence`, `attempt`, `review`, `decision`, `question`, `artifact`, and `risk`. Domain extensions use `namespace:kind`; do not redefine a universal kind.
 
+### Optional research content tree
+
+An exploratory project may keep a research content tree separate from task scheduling. The current schema can store the accepted tree as **one** `artifact` record in `records/store.json`. Give that record a stable ID such as `artifact-research-tree`; put stable tree-node IDs, parent or dependency links, research questions, evidence or counter-evidence references, unresolved gaps, and next verifiable questions in its `content`. Keep claims and evidence as distinct formal records or registered sources when they need independent review. A tree node describes the state of inquiry, not a task-board status or proof that a claim is true.
+
+For research-task planning, direction runs from the content tree to the task map: identify a tree gap and its dependencies, propose a task with checkable output, obtain the user's decision, then add an accepted task to the board and derived map. Completing that task returns evidence and possible tree revisions for separate review. The map helps locate and execute confirmed work; it is not the source from which research questions are invented.
+
+The tree record is formal project data only after an itemized user decision and the normal transaction. Before acceptance, keep its outline and changes in `work/`. Do not make an ungoverned Markdown file or the project map the tree's authority. A human-readable outline may be produced for review, but the accepted record remains the source of truth. The validator checks tree-node IDs, dependencies, evidence references, and task links for the optional `ltpm-research-content-tree/v1` shape described in `references/research-content-tree.md`. This does not change the project record-store schema.
+
+The current renderer generates a task-focused map: objective, accepted task records, and one research-tree artifact entry when present. Other formal records and sources remain available through formal storage and scoped retrieval rather than appearing as map nodes. Previously generated all-record maps remain valid as legacy derived views until rebuilt.
+
 A failed attempt has `content.outcome: "failed"` and non-empty `attempted`, `failure_reason`, `failure_conditions`, `retry_conditions`, and `evidence_or_reproduction` fields.
 
 A relation requires stable `id`, `from`, `type`, `to`, and `confirmation_status: "accepted"`. Its endpoints may be the objective, a formal record, or a registered source. Generic types are `contains`, `depends_on`, `causes`, `supports`, `contradicts`, `tests`, `produces`, `supersedes`, `blocks`, `derived_from`, `evaluates`, `decides`, and `cites`; domain extensions use `namespace:type`.

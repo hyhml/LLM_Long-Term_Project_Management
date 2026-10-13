@@ -17,6 +17,8 @@ Gather and show:
 
 Initialization may leave `current_focus.task_contract` null. Before substantive work begins, the confirmed task contract must add its `data:project` classification and derived control plan as described in `references/data-model.md`.
 
+For an exploratory or research project, ask whether a separate content tree would help track questions and evidence gaps. If so, the initial proposal may include a **pending** outline with planning assumptions. The current initializer does not create arbitrary formal records, so place no tree in formal storage during initialization; accept any tree artifact later through the ordinary itemized project transaction. Ordinary projects need no tree.
+
 Use stable IDs. Prefer `goal-*`, `task-*`, `decision-*`, `idea-*`, `attempt-*`, `evidence-*`, `artifact-*`, `question-*`, and `risk-*` prefixes. Supported relation types are `contains`, `depends_on`, `causes`, `supports`, `contradicts`, `tests`, `produces`, `supersedes`, `blocks`, and `derived_from`.
 
 ## Create after confirmation
