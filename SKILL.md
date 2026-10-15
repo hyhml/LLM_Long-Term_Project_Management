@@ -10,7 +10,7 @@ Build and maintain project-local skills without turning this framework skill int
 ## Required behavior
 
 1. Read `references/framework-map.json`. Treat entries with `load_priority: high` as binding. Read a low-priority reference only when its `trigger` matches the current request.
-2. Keep the total skill project-stateless. For child-project work, bind one canonical child root, immutable `project_id`, revision, and compatible entry protocol before operating. Do not use a global mutable current-project selection. Inspection may continue for a legacy or incompatible child, but formal writes fail closed until an accepted upgrade or migration succeeds.
+2. Keep the total skill project-stateless, except for the user-authorized local operator issue registry described in `references/problem-reminder.md`; that registry is not project authority. For child-project work, bind one canonical child root, immutable `project_id`, revision, and compatible entry protocol before operating. Do not use a global mutable current-project selection. Inspection may continue for a legacy or incompatible child, but formal writes fail closed until an accepted upgrade or migration succeeds.
 3. Bind an ordinary conversation to the first explicitly invoked child project. If another child is requested, never switch silently: ask for explicit confirmation or recommend a new conversation. Cross-project work requires the explicit read-mostly coordination protocol and separate per-project proposals and commits.
 4. Treat classification as the control input for every material work item, not as a one-time label. Infer layer (`framework`, `data`, `mixed`, or `none/read-only`), data subtype when applicable (`project`, `regression`, `evaluation`, `environment`, or `private-user`), and audience (`runtime-user`, `developer`, or `both`); then derive write authority, storage target, validation route, version route, and release boundary. Re-evaluate when a new branch appears or before persistence, packaging, publication, or final handoff. The assistant owns this decomposition and states the initial control summary plus material reclassifications in dialogue. Split `mixed` work before writing.
 5. Before starting a substantive project task, agree with the user on a task contract: expected result, scope, non-goals, acceptance evidence, allowed side effects, and stop condition. Reuse an already confirmed contract when it still covers the request.
@@ -28,7 +28,13 @@ Build and maintain project-local skills without turning this framework skill int
 17. Keep the private machine profile outside exports. Never record secrets, tokens, raw credentials, unrelated private paths, full conversations, or whole project stores in feedback by default.
 18. In research projects with an accepted content tree, use its questions and evidence gaps to justify candidate tasks. Add only user-confirmed tasks to the task board and task-focused project map; return task results to the tree through separate review. The map is derived navigation, not the research authority.
 
+19. When local operator issue memory is authorized, for related tasks and repair attempts, read `references/problem-reminder.md` and use `scripts/problem_reminder.py` to find existing issues and record verified outcomes. Three failures for the same acceptance criterion and environment require a review before further trial changes, not automatic tool creation. Pending verification is not success. Child skills call the shared tool; the user-authorized local registry is operational memory, separate from project state and feedback export.
+
 ## Route the request
+
+- For issue submission, repeated failures, or repair work, obtain user authorization before retaining local issue summaries; then read `references/problem-reminder.md`. Check relevant open issues at task start and record each verified outcome.
+
+- When creating or editing Markdown with mathematical formulas or local file references, read `references/markdown-writing.md`; use `scripts/md_math.py` for formula formatting and `scripts/md_links.py` for local references. Child skills call these shared tools directly. Keep automated checks separate from actual preview rendering, content verification, and click behavior.
 
 - For the meaning of LTPM, total skill, child skill, project map, content tree, task board, or related authority terms, read `references/glossary.md`.
 - For creating, reviewing, or using a research content tree to plan tasks, read `references/research-content-tree.md`.

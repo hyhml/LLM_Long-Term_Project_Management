@@ -1,9 +1,11 @@
 {
   "schema_version": 1,
-  "framework_version": "0.8.0",
+  "framework_version": "0.9.0",
   "compatibility": {
     "current_entry_protocol": 1,
-    "supported_entry_protocols": [1],
+    "supported_entry_protocols": [
+      1
+    ],
     "supported_data_schemas": {
       "project": "ltpm-project-state/v2",
       "task_board": "ltpm-task-board/v1",
@@ -18,12 +20,26 @@
     }
   },
   "priority_semantics": {
-    "load_priority": ["high", "low"],
-    "task_priority": ["high", "low"],
+    "load_priority": [
+      "high",
+      "low"
+    ],
+    "task_priority": [
+      "high",
+      "low"
+    ],
     "task_priority_scope": "foreground-background-scheduling",
-    "goal_hierarchy": ["objective", "milestone", "task"],
+    "goal_hierarchy": [
+      "objective",
+      "milestone",
+      "task"
+    ],
     "time_horizon_sets_task_priority": false,
-    "status": ["active", "deferred", "done"]
+    "status": [
+      "active",
+      "deferred",
+      "done"
+    ]
   },
   "roles": [
     {
@@ -106,7 +122,7 @@
     {
       "id": "project-stateless-framework",
       "load_priority": "high",
-      "rule": "The total skill owns shared behavior and compatibility logic but no concrete project state or mutable authoritative global current-project selection."
+      "rule": "The total skill owns shared behavior and compatibility logic but no concrete project state or mutable authoritative global current-project selection. A user-authorized local operator issue registry may live in private/problem-reminder; it is not project authority, a global active-project selector, or feedback export."
     }
   ],
   "governance_invariants": [
@@ -129,6 +145,11 @@
       "id": "consent-based-framework-feedback",
       "load_priority": "high",
       "rule": "A user-raised concern that may involve the framework triggers provisional classification. Already authorized context needs one final preview approval; reading new private or external material first needs one bounded collection approval. There is no automatic upload, and real feedback remains external to project records and framework releases."
+    },
+    {
+      "id": "three-failure-review",
+      "load_priority": "high",
+      "rule": "When local operator issue memory is authorized, for related tasks and repair attempts, consult references/problem-reminder.md and the shared issue tool. Record pending, failed, or passed based on verification; three failures for the same acceptance criterion and environment require review before further trial changes. Do not automatically create tools or infer success from execution alone."
     }
   ],
   "capabilities": [
@@ -207,6 +228,20 @@
       "load_priority": "low",
       "trigger": "The user raises a problem that may involve the framework, or a reusable framework defect, compatibility issue, unsafe allowance, blocked valid action, repeated ambiguity, or data-loss/privacy risk is observed.",
       "reference": "references/framework-feedback.md",
+      "status": "active"
+    },
+    {
+      "id": "markdown-writing",
+      "load_priority": "low",
+      "trigger": "Creating or editing Markdown formulas or local file references, including in child projects.",
+      "reference": "references/markdown-writing.md",
+      "status": "active"
+    },
+    {
+      "id": "problem-reminder",
+      "load_priority": "low",
+      "trigger": "Starting related tasks, submitting issues, receiving user failure feedback, or verifying repair outcomes.",
+      "reference": "references/problem-reminder.md",
       "status": "active"
     }
   ],
