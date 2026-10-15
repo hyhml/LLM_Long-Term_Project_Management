@@ -1,0 +1,46 @@
+{
+  "schema": "ltpm-runtime-release-receipt/v1",
+  "release_version": "0.9.0",
+  "released_at": "2026-10-15T17:13:09Z",
+  "source": {
+    "branch": "development",
+    "revision": "f2e6e38a2a5ed9dbc4deded4b0e0f0950b12eff8",
+    "framework_version": "0.9.0-dev.1"
+  },
+  "runtime": {
+    "branch": "main",
+    "commit": "729c310247dc5413c639a9ec93e069e4083f6ade",
+    "tag": "v0.9.0",
+    "file_count": 41,
+    "total_bytes": 271622,
+    "tree_sha256": "3c7bdf633737e36a74190ef47af8482ac4a515eb24999632dfd16928d0565a68"
+  },
+  "archive": {
+    "name": "long-term-project-manager-v0.9.0.zip",
+    "size": 94574,
+    "sha256": "b6a9ffaf8d47d249e97c8410f84ec4ea49f2d922116b770cf39b56cec3643769",
+    "url": "https://github.com/hyhml/LLM_Long-Term_Project_Management/releases/download/v0.9.0/long-term-project-manager-v0.9.0.zip"
+  },
+  "validation": {
+    "developer_tests": "58 passed",
+    "development_skill": "passed",
+    "exact_runtime_allowlist_and_stable_version": "passed",
+    "runtime_skill": "Skill is valid!",
+    "generated_child_project": "passed",
+    "child_binding": "compatible",
+    "private_registry_excluded": "passed synthetic sentinel release test; fresh runtime list creates no store",
+    "installed_runtime": "0.9.0 runtime files match artifact; private-tree hashes unchanged",
+    "existing_project_binding": "compatible; project data and revision unchanged",
+    "remote_refs_and_release_asset": "main and peeled stable tag matched intended runtime commit; public non-prerelease asset uploaded, 94574 bytes",
+    "gui_rendering_or_clicks": "not tested; no claim of GUI behavior"
+  },
+  "excluded_from_runtime": [
+    "AGENTS.md",
+    "development/",
+    "tests/",
+    "private/",
+    "__pycache__/",
+    "*.pyc"
+  ],
+  "release_url": "https://github.com/hyhml/LLM_Long-Term_Project_Management/releases/tag/v0.9.0"
+}
