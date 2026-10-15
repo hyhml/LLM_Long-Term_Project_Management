@@ -2,7 +2,7 @@
 
 - Scope: development-only product intent and coverage map
 - Authority: user-confirmed requirements, organized for framework development
-- Updated: 2026-10-13
+- Updated: 2026-10-16
 - Runtime distribution: excluded from `main` and user release archives
 
 ## How to use this map
@@ -58,7 +58,7 @@ Developer mode designs, tests, versions, and releases the reusable framework. De
 
 ### User mode
 
-User mode is the installed global total skill. It is explicitly invoked. It discusses the user's project, establishes acceptance criteria, generates a child skill, supplies shared deterministic tools, detects child compatibility, and proposes upgrades when the total skill changes. It does not store concrete project knowledge in the global skill.
+User mode is the installed global total skill. It is explicitly invoked. It discusses the user's project, establishes acceptance criteria, generates a child skill, supplies shared deterministic tools, detects child compatibility, and proposes upgrades when the total skill changes. It does not store concrete project knowledge in the global skill. User-authorized local operator issue summaries are an explicit exception for repair tracking; they are not project authority and never ship in runtime artifacts.
 
 ### Project-local child skill
 
@@ -103,7 +103,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `PROD-001` | high | Provide domain-neutral cross-conversation and long-term project management. | partial | Core storage, handoff, retrieval, and transactions exist; sustained real-project validation remains limited. |
 | `PROD-002` | high | Separate reusable total-framework behavior from concrete project-local state. | implemented | Global runtime and project-local generated layout are separate. |
 | `PROD-003` | high | Separate developer mode from user mode. | implemented | Development-only harness plus whitelist-built `main`/release. |
-| `PROD-004` | high | Keep the installed global user skill thin and free of project data. | implemented | Runtime release has only framework files; private/project data are excluded. |
+| `PROD-004` | high | Keep the installed global user skill thin and free of project data. | implemented | Runtime release has only framework files; private/project data are excluded. Authorized operator issue memory is local-only (ADR-0017). |
 | `PROD-005` | high | Project data and its child skill travel with the project. | implemented | Project-local data, portable identity/compatibility metadata, handoffs, and explicit adapter upgrade support cross-machine use with a compatible installed total skill. |
 | `PROD-006` | high | Treat the child skill as a managed project instance rather than an independently diverging framework fork. | implemented | Thin adapter, instance contract, ownership hashes, compatibility inspection, and accepted upgrade path. |
 | `PROD-007` | high | Design for projects with tens of map nodes before optimizing for large-scale storage. | implemented | Current JSON structures and bounded scanning target this scale. |
@@ -168,6 +168,8 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `TASK-002` | high | Prefer discover existing AI/tool capability, then create/adapt the smallest justified tool, then use the tool. | partial | Behavioral practice is instructed; broader usage evaluation remains future evidence. |
 | `TASK-003` | high | Keep reusable created tools as candidates and ask whether to retain, archive, or discard them at task close. | partial | Candidate-tool workspace and lifecycle protocol exist; sustained usage evidence is limited. |
 | `TASK-004` | high | Never silently convert an idea, finding, or possible next task into an accepted task. | implemented | Child rules and transaction boundary. |
+| `TASK-005` | high | Provide shared Markdown math/local-reference writing rules and explicit check/fix tools; do not equate automated checks with reader rendering or navigation. | implemented | `md_math.py`, `md_links.py`, shared writing reference and synthetic feature tests; no GUI automation claim. |
+| `TASK-006` | high | After user authorization, accept local issue summaries and remind after three verified failures for the same criterion/environment; retain history, deduplicate observations, and require review rather than automatic tool creation. | implemented | `problem_reminder.py`, shared invocation rules, Linux/WSL locked atomic local store and synthetic lifecycle/concurrency tests; no background chat listener. |
 
 ### F. Classification and governance
 
@@ -215,7 +217,7 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `ISOL-002` | high | Scope retrieval, validation, transactions, packages, imports, views, indexes, and migrations to the bound project by default and fail closed on identity mismatch or ambiguity. | implemented | Shared binding gate, destination check, explicit roots, and isolation tests. |
 | `ISOL-003` | high | Bind an ordinary conversation to one active project; never switch implicitly, and prefer a new conversation when another project is requested. | implemented | High-priority runtime rule plus deterministic session decision and regression coverage. |
 | `ISOL-004` | high | Require explicit cross-project coordination, declare participating project IDs and retrieval coverage, and keep proposals, decisions, revisions, and receipts separate per project. | implemented | Read-mostly coordinator reports participants/coverage and forbids merged writes. |
-| `ISOL-005` | high | Keep the total skill free of concrete project state and any mutable authoritative global current-project selection. | implemented | Runtime invariant, no selector storage, project-local initializer output, and release/isolation tests. |
+| `ISOL-005` | high | Keep the total skill free of concrete project state and any mutable authoritative global current-project selection. | implemented | Runtime invariant, no selector storage, project-local initializer output, and release/isolation tests; ADR-0017 permits authorized local repair summaries without changing project authority. |
 | `ISOL-006` | high | Detect ambiguous child resolution, duplicate identity, or incompatible framework binding and allow inspection while blocking unsafe formal writes. | implemented | Binding statuses, sibling duplicate detection, managed hashes, schema checks, and fail-closed tools. |
 | `ISOL-007` | high | Keep exactly one framework-generated discoverable `SKILL.md` per managed project identity; internal candidates and snapshots must not become runtime entries. | implemented | Data-only transaction candidates, temporary full validation, approved legacy cleanup, and synthetic repeated-transaction tests. |
 
@@ -272,6 +274,8 @@ Generation and upgrade are both part of the primary product capability. Implemen
 | `FEED-006` | depends_on | `PROD-003`, `QUAL-003`, `QUAL-005` | Safe intake depends on the developer/runtime boundary and external real-case storage. |
 | `FEED-007` | uses | `QUAL-002` | Test derivation follows the accepted regression policy rather than importing a real incident. |
 | `GOV-008` | constrains | `QUAL-001`, `QUAL-004` | Validation strength follows the stage; each claim uses one still-valid gate result, and only invalidated gates are rerun. |
+| `TASK-005` | constrained_by | `QUAL-002`, `QUAL-005`, `GOV-004` | Synthetic parser tests protect format contracts without claiming GUI verification or importing real documents. |
+| `TASK-006` | constrained_by | `TASK-001`, `ISOL-005`, `FEED-004`, `QUAL-005` | Issue memory requires authorization, explicit criteria and environment; it is not project state, export consent, telemetry, or runtime data. |
 
 ## 6. Current high-priority gaps
 
@@ -311,3 +315,5 @@ For every framework task:
 9. reconcile requirement status with actual evidence before release.
 
 A script, template, rule, or test is evidence for a requirement, not proof that the full user-visible capability exists. Completion is assessed end to end.
+
+ADR-0017 records the user-authorized local issue-memory exception and shared Markdown tools for v0.9.0. Existing child protocols and project schemas remain unchanged.

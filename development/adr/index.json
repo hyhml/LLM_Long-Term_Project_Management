@@ -157,6 +157,20 @@
       "path": "development/adr/0016-tree-guided-task-map.md",
       "topics": ["research-content-tree", "task-map", "derived-view", "task-planning", "compatibility"],
       "runtime_effect": "implemented-in-development; not-yet-released"
+    },
+    {
+      "id": "ADR-0017",
+      "title": "Shared Markdown checks and authorized local repair reminders",
+      "status": "accepted",
+      "path": "development/adr/0017-shared-writing-and-repair-tools.md",
+      "topics": [
+        "markdown",
+        "shared-tools",
+        "repair-review",
+        "operator-memory",
+        "release-boundary"
+      ],
+      "runtime_effect": "implemented-in-0.9.0-dev.1"
     }
   ]
 }

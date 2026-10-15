@@ -9,7 +9,7 @@ from support import ROOT, ProjectTestCase, read_json, run
 
 BUILDER = ROOT / "development" / "release" / "build_runtime.py"
 ALLOWLIST = ROOT / "development" / "release" / "runtime-allowlist.json"
-TEST_RELEASE = "0.8.0"
+TEST_RELEASE = "0.9.0"
 
 
 class RuntimeReleaseBundleTest(ProjectTestCase):
@@ -52,7 +52,7 @@ class RuntimeReleaseBundleTest(ProjectTestCase):
         self.assertEqual(report["file_count"], len(allowlist))
         self.assertEqual(report["release_version"], TEST_RELEASE)
         self.assertEqual(read_json(runtime / "references" / "framework-map.json")["framework_version"], TEST_RELEASE)
-        self.assertEqual(read_json(ROOT / "references" / "framework-map.json")["framework_version"], "0.8.0-dev.1")
+        self.assertEqual(read_json(ROOT / "references" / "framework-map.json")["framework_version"], "0.9.0-dev.1")
         for excluded in ("AGENTS.md", "development", "tests", "private"):
             self.assertFalse((runtime / excluded).exists())
         self.assertTrue(archive.is_file())
@@ -114,3 +114,17 @@ class RuntimeReleaseBundleTest(ProjectTestCase):
         self.assertEqual(first["tree_sha256"], second["tree_sha256"])
         self.assertEqual(first["archive_sha256"], second["archive_sha256"])
         self.assertEqual(first_archive.read_bytes(), second_archive.read_bytes())
+
+    def test_shared_tools_ship_without_private_issue_data(self) -> None:
+        source = self.copy_source('source-private-sentinel')
+        private = source / 'private/problem-reminder/issues.json'
+        private.parent.mkdir(parents=True, exist_ok=True)
+        private.write_text('{"synthetic_private_sentinel": true}\n')
+        runtime = self.temp / 'runtime-without-private'
+        report = json.loads(self.build(runtime, source=source).stdout)
+        for name in ['scripts/md_links.py', 'scripts/md_math.py', 'scripts/problem_reminder.py',
+                     'references/markdown-writing.md', 'references/problem-reminder.md']:
+            self.assertTrue((runtime / name).is_file())
+        self.assertFalse((runtime / 'private').exists())
+        run(runtime / 'scripts/problem_reminder.py', 'list')
+        self.assertFalse((runtime / 'private').exists())

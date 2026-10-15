@@ -1,3 +1,6 @@
 private/local-environment.json
 __pycache__/
 *.pyc
+
+# Local operator issue memory; not runtime distribution
+private/problem-reminder/

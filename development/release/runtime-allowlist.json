@@ -35,7 +35,13 @@
     "scripts/render_project_views.py",
     "scripts/search_project.py",
     "scripts/upgrade_project.py",
-    "scripts/validate_project.py"
+    "scripts/validate_project.py",
+    "references/markdown-writing.md",
+    "references/markdown-local-links.md",
+    "references/problem-reminder.md",
+    "scripts/md_links.py",
+    "scripts/md_math.py",
+    "scripts/problem_reminder.py"
   ],
   "developer_files": [
     "AGENTS.md"
